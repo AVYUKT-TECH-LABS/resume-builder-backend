@@ -125,8 +125,8 @@ class SectionDto {
 class ResumeDataDto {
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
-  id: string;
+  // @IsNotEmpty()
+  id?: string;
 
   @ApiProperty()
   @ValidateNested()
@@ -141,6 +141,9 @@ class ResumeDataDto {
 }
 
 export class CreateResumeDto {
+  @IsString()
+  name?: string;
+
   @ApiProperty()
   @ValidateNested()
   @Type(() => PageDto)

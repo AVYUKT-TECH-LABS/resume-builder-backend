@@ -8,9 +8,6 @@ export class Resume {
   @Prop({ required: true })
   userId: string;
 
-  @Prop({ required: true })
-  name: string;
-
   @Prop({ type: Object, required: true })
   page: {
     size: string;

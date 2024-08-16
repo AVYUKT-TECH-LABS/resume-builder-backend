@@ -1,19 +1,21 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
+  FileTypeValidator,
   Get,
+  Headers,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
   Patch,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { GetUser } from '../decorators/user.decorator';
-import { ClerkAuthGuard } from '../guards/clerk.guard';
-import { User } from '../interfaces/user.interface';
-import { CreateResumeDto } from './dto/create-resume.dto';
-import { UpdateResumeDto } from './dto/update-resume.dto';
-import { ResumeService } from './resume.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiCookieAuth,
@@ -21,7 +23,14 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import axios from 'axios';
+import { GetUser } from '../decorators/user.decorator';
+import { ClerkAuthGuard } from '../guards/clerk.guard';
+import { User } from '../interfaces/user.interface';
 import { Resume } from '../schemas/resume.schema';
+import { Resume as ResumeType } from '../types/index';
+import { UpdateResumeDto } from './dto/update-resume.dto';
+import { ResumeService } from './resume.service';
 
 @ApiBearerAuth()
 @ApiTags('Resume')
@@ -36,8 +45,8 @@ export class ResumeController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 201, description: 'Created' })
-  create(@Body() createResumeDto: CreateResumeDto, @GetUser() user: User) {
-    return this.resumeService.create(createResumeDto, user.id);
+  create(@GetUser() user: User) {
+    return this.resumeService.create(user.id);
   }
 
   @Get('list')
@@ -67,12 +76,66 @@ export class ResumeController {
   }
 
   @Patch('update/:id')
-  update(@Param('id') id: string, @Body() updateResumeDto: UpdateResumeDto) {
-    return this.resumeService.update(+id, updateResumeDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateResumeDto: UpdateResumeDto,
+    @GetUser() user: User,
+  ) {
+    return this.resumeService.update(id, updateResumeDto, user.id);
   }
 
   @Delete('delete/:id')
   remove(@Param('id') id: string) {
     return this.resumeService.remove(+id);
+  }
+
+  @Post('uploadAndCreate')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadAndCreate(
+    @Headers() headers,
+    @GetUser() user: User,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 100000 }),
+          new FileTypeValidator({ fileType: 'application/pdf' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    const formData = new FormData();
+    const blob = new Blob([file.buffer], { type: file.mimetype });
+    formData.append('file', blob, file.originalname);
+
+    try {
+      const response = await axios.post(
+        'http://127.0.0.1:5000/upload',
+        formData,
+        {
+          headers,
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity,
+        },
+      );
+
+      const resumeData = response.data as ResumeType;
+
+      //create resume
+      const new_resume = await this.resumeService.createFromData(
+        user.id,
+        resumeData,
+        file.originalname,
+      );
+
+      return new_resume._id;
+    } catch (error) {
+      console.error('Error sending file to Flask API:', error);
+      throw new BadRequestException('Failed to process the file');
+    }
   }
 }
