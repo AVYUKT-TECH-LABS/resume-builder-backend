@@ -84,7 +84,7 @@ export class ResumeController {
 
   @Delete('delete/:id')
   remove(@Param('id') id: string) {
-    return this.resumeService.remove(+id);
+    return this.resumeService.remove(id);
   }
 
   @Post('uploadAndCreate')
