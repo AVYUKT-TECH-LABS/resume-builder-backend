@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Resume } from '../schemas/resume.schema';
-import { UpdateResumeDto } from './dto/update-resume.dto';
 import { Resume as ResumeType } from '../types/index';
+import { UpdateResumeDto } from './dto/update-resume.dto';
 
 @Injectable()
 export class ResumeService {
@@ -73,6 +73,7 @@ export class ResumeService {
         {
           createdAt: 1,
           updatedAt: 1,
+          resume: 1,
           name: 1,
           _id: 1,
         },
@@ -90,7 +91,7 @@ export class ResumeService {
   }
 
   async update(id: string, updateResumeDto: UpdateResumeDto, user_id: string) {
-    await this.resumeModel
+    return await this.resumeModel
       .updateOne(
         {
           _id: id,
@@ -100,10 +101,10 @@ export class ResumeService {
       )
       .exec();
 
-    return 'ok';
+    // return 'ok';
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.resumeModel.deleteOne({ _id: id }).exec();
   }
 
