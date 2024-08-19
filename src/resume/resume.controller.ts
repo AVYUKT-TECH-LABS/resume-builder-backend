@@ -12,8 +12,7 @@ import {
   Patch,
   Post,
   UploadedFile,
-  UseGuards,
-  UseInterceptors,
+  UseInterceptors
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -25,7 +24,6 @@ import {
 } from '@nestjs/swagger';
 import axios from 'axios';
 import { GetUser } from '../decorators/user.decorator';
-import { ClerkAuthGuard } from '../guards/clerk.guard';
 import { User } from '../interfaces/user.interface';
 import { Resume } from '../schemas/resume.schema';
 import { Resume as ResumeType } from '../types/index';
@@ -35,7 +33,7 @@ import { ResumeService } from './resume.service';
 @ApiBearerAuth()
 @ApiTags('Resume')
 @Controller('resume')
-@UseGuards(ClerkAuthGuard)
+// @UseGuards(ClerkAuthGuard)
 export class ResumeController {
   constructor(private readonly resumeService: ResumeService) {}
 
@@ -133,6 +131,67 @@ export class ResumeController {
       );
 
       return new_resume._id;
+    } catch (error) {
+      console.error('Error sending file to Flask API:', error);
+      throw new BadRequestException('Failed to process the file');
+    }
+  }
+
+  @Post('generateVariations')
+  @UseInterceptors(FileInterceptor('file'))
+  async generateVariations(
+    @Headers() headers,
+    @GetUser() user: User,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 100000 }),
+          new FileTypeValidator({ fileType: 'application/pdf' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    const formData = new FormData();
+
+    const blob = new Blob([file.buffer], { type: file.mimetype });
+    formData.append('file', blob, file.originalname);
+    formData.append(
+      'selectedDomains',
+      JSON.stringify(['Frontend Developer', 'Devops']),
+    );
+
+    try {
+      const response = await axios.post(
+        'http://127.0.0.1:5000/forDomains',
+        formData,
+        {
+          headers,
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity,
+        },
+      );
+
+      const { resumes } = response.data as { resumes: ResumeType[] };
+
+      //create resumes
+      resumes.forEach(
+        async (resume) =>
+          await this.resumeService.createFromData(
+            user.id,
+            resume,
+            resume.id.replace('-', ' '),
+          ),
+      );
+
+      return {
+        code: 200,
+        message: 'Resumes created',
+      };
     } catch (error) {
       console.error('Error sending file to Flask API:', error);
       throw new BadRequestException('Failed to process the file');
