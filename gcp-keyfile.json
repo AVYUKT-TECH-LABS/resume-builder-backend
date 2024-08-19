@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "impressive-gear-431105-i0",
+  "private_key_id": "83fc1cad446655ed6ef9ba02987b9c34eec69bab",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCBefL0VHNquU9I\noxFsgKU0OqHUGv0OExc8zoJzMhOnz006+VuoyjrQ4Gaotl+nk9MsUvbiM7+v23x5\niCmS42oWgXY/KSzqdxD9IkrBBOkPAIkLJZ2s4GxpGUfqZK73AxMT5vpAr2OHAtjk\nzZoxXVyTG6mrpaPj7iByp6SUtn27Bo5Ve4jSKGOVweAmH4UxYropksq6mveuVtV+\nX1oe5y/lslKXtwgBhCvXk1VO8LgSHD+Fm8FFGKJKhZLH2lhRwesUtWRQVUloBzkG\nZWGkuM1GCSSh9PvMFlsFHKGVeMEMHNWULq8aKX3XZwU6q9PlcaOv5pqFbJOUUz4/\n241l8lUxAgMBAAECggEAB2sgU4V/M284rrXBKtFYJdzyJsABHcxUOYSvjsAgxi2n\nhCiDavFjW1JwL1x7sJNUtyZtxNooMoBF6oS1tRfYnT9/sfC/BRQbYhWT6OlKHTTv\npTbbiOs26vKq3zAzoi2H600Bq7Eg57xvBvUMz6VEx5z/JLmR4V5kd41Jbcfi/lM1\n+aD/Ia5lm/2Xct3/of6Frx9SGG96oGQ+zpzylNjHFgRyZMixmWiQer+KhjAjGRKH\n4ksau6ZbZaLIc9C0NBBC93A7pXXeDXOup7CGWeelM6JLchCeaEOm6AVpiMMWpFeY\nwizuqqVdX46QSvmOwf6yCEHHnsI3FeiT3GvriNfGwQKBgQC2IgzxNTJxemfSoRC2\n/5npQChbwnGR47yKWEXhWelqg48jAo1IgFu1Y+KOUewVwHDxDC7n1kPQ3ISz1Ta/\n/b548bZk2yOiflKtd2LW1ju/jBbEV7HDLZuWqDS2Z741ku56tIsLINajD6wIp+al\nMXgeu8IOQeer9StAKSF0pYWrGQKBgQC1/NM8anmBUVVRmJgCWXPBL/oziWe0v249\nC8zlqQPGa4JmPnAC2u8z5Bxog+SSa3cEyc4iZdNzjVobYQFEa28pWG6p/HziEVVd\nT2PCEV6A7KK9zX8dj65uwaXi/FO1Tc4VfHbtkHeZnAi3nGSp7VkIIIm6p5zG4485\n8njsdB1V2QKBgFjxH+ja1Ztc7z6IsSTshTjGv+6vcc6QrA3TNazqv3XocQnjwSLa\nq+5UrNpbXzLwGzdbf7xvggaI6bT4NhhjzZQ6VZvC+A/uKGnVl0raq6rKuoN/X6u0\npfpYggVhfB2ldxgs+omgq7BNgvFnLNcW5VX80rMrs/rhaxGWBGR2QGRhAoGAJu85\nLhLFfgItk7BmzRHgLvOZvs7lzgiqiArvQi8frKKxmjg/dIzsYhiqbz3Qd/bf1rlq\nDXflfjI+ld7yC3ZEqP7PZjSrbx4wOi9S82EN6900kBDX4jYsJmvtlptPOVm0/mnL\nc9XVkJqOTuH5s1UhGBkF/lX/t5lVuhsC/et1nzkCgYAj6vb9DANUct2mlqZ0+Dc4\n9vZCbatknomlULIxVIJR75lJ6qJpCCQafpcImE3JP+AgEAR3NOo6bYrkQWMixbx0\nkNq0ec+eEY8TwHGIpGM/UlXUCSCxVsgggQUzyk+qQZ7jD29bN/AquN2PaYKOEmiH\n8r50/jr/nZ5yzlabkYBLWg==\n-----END PRIVATE KEY-----\n",
+  "client_email": "talentxcel-backend@impressive-gear-431105-i0.iam.gserviceaccount.com",
+  "client_id": "111741483022169907623",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/talentxcel-backend%40impressive-gear-431105-i0.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

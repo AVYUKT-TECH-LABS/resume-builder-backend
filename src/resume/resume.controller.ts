@@ -6,13 +6,15 @@ import {
   FileTypeValidator,
   Get,
   Headers,
+  InternalServerErrorException,
   MaxFileSizeValidator,
   Param,
   ParseFilePipe,
   Patch,
   Post,
   UploadedFile,
-  UseInterceptors
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -29,11 +31,12 @@ import { Resume } from '../schemas/resume.schema';
 import { Resume as ResumeType } from '../types/index';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 import { ResumeService } from './resume.service';
+import { ClerkAuthGuard } from '../guards/clerk.guard';
 
 @ApiBearerAuth()
 @ApiTags('Resume')
 @Controller('resume')
-// @UseGuards(ClerkAuthGuard)
+@UseGuards(ClerkAuthGuard)
 export class ResumeController {
   constructor(private readonly resumeService: ResumeService) {}
 
@@ -85,6 +88,34 @@ export class ResumeController {
   @Delete('delete/:id')
   remove(@Param('id') id: string) {
     return this.resumeService.remove(id);
+  }
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadResume(
+    @GetUser() user: User,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 100000 }),
+          new FileTypeValidator({ fileType: 'application/pdf' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    try {
+      if (!file) {
+        throw new BadRequestException('No file uploaded');
+      }
+
+      const userId = user.id;
+
+      return this.resumeService.uploadResume(userId, file);
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new InternalServerErrorException('Failed to upload resume');
+    }
   }
 
   @Post('uploadAndCreate')
@@ -196,5 +227,18 @@ export class ResumeController {
       console.error('Error sending file to Flask API:', error);
       throw new BadRequestException('Failed to process the file');
     }
+  }
+
+  @Get('suggestDomains/:upload_id')
+  async suggestDomains(@Param('upload_id') upload_id: string) {
+    return this.resumeService.suggestDomains(upload_id);
+  }
+
+  @Post('domainSpecific/:upload_id')
+  async domainSpecific(
+    @Param('upload_id') upload_id: string,
+    @Body('domains') domains: string[],
+  ) {
+    return this.resumeService.generateDomainSpecific(upload_id, domains);
   }
 }
