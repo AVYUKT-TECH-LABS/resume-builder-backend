@@ -51,7 +51,7 @@ interface Section {
 }
 
 export interface Resume {
-  contact: Contact;
   id: string;
+  contact: Contact;
   sections: Section[];
 }

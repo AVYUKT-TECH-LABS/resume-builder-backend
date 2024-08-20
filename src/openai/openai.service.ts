@@ -77,6 +77,7 @@ export class OpenAiService {
       prompts.variation,
       `
         content: ${content}
+        
         required domain: ${domain}
       `,
       {

@@ -236,18 +236,15 @@ export class ResumeService {
     });
 
     const promises = domains.map(async (domain) => {
-      return this.openai.resumeForDomain(uploaded.rawContent, domain);
+      const resume = (await this.openai.resumeForDomain(
+        uploaded.rawContent,
+        domain,
+      )) as ResumeType;
 
-      // return this.createFromData(
-      //   uploaded.userId,
-      //   newResume,
-      //   `${domain} resume`,
-      // );
+      return this.createFromData(uploaded.userId, resume, `${domain} resume`);
     });
 
-    const results = await Promise.all(promises);
-
-    console.log(results);
+    await Promise.all(promises);
     return 'ok';
   }
 }

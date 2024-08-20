@@ -1,12 +1,14 @@
 import { z } from 'zod';
 
 const Contact = z.object({
-  name: z.string(),
-  title: z.string(),
-  phone: z.string(),
-  link: z.string(),
-  email: z.string(),
-  location: z.string(),
+  data: z.object({
+    name: z.string(),
+    title: z.string(),
+    phone: z.string(),
+    link: z.string(),
+    email: z.string(),
+    location: z.string(),
+  }),
 });
 
 const ExperienceItem = z.object({
@@ -58,14 +60,16 @@ const Section = z.object({
     'projects',
   ]),
   list: z.array(
-    z.union([
-      ExperienceItem,
-      EducationItem,
-      SummaryItem,
-      Skills,
-      AchievementsItem,
-      ProjectItem,
-    ]),
+    z.object({
+      data: z.union([
+        ExperienceItem,
+        EducationItem,
+        SummaryItem,
+        Skills,
+        AchievementsItem,
+        ProjectItem,
+      ]),
+    }),
   ),
 });
 
