@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Resume } from '../schemas/resume.schema';
-import { Resume as ResumeType } from '../types/index';
-import { UpdateResumeDto } from './dto/update-resume.dto';
-import { Upload } from '../schemas/upload.schema';
-import { CloudService } from '../cloud/cloud.service';
-import shortId from '../utils/shortid';
 import axios from 'axios';
+import { Model } from 'mongoose';
+import { CloudService } from '../cloud/cloud.service';
 import { OpenAiService } from '../openai/openai.service';
+import { Resume } from '../schemas/resume.schema';
+import { Upload } from '../schemas/upload.schema';
+import { Resume as ResumeType } from '../types/index';
+import shortId from '../utils/shortid';
+import { UpdateResumeDto } from './dto/update-resume.dto';
 
 @Injectable()
 export class ResumeService {
@@ -246,5 +246,16 @@ export class ResumeService {
 
     await Promise.all(promises);
     return 'ok';
+  }
+
+  async generateAnalyses(upload_id: string) {
+    const uploaded = await this.uploadModel.findById(upload_id, {
+      rawContent: 1,
+      userId: 1,
+    });
+
+    const result = await this.openai.analyse(uploaded.rawContent);
+
+    return result;
   }
 }

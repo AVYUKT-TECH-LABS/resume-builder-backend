@@ -4,7 +4,11 @@ import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { ZodType, ZodTypeDef } from 'zod';
 import prompts from '../prompts';
-import { DomainSuggestions, ParsedResume } from './response-schema';
+import {
+  AnalyzeSchema,
+  DomainSuggestions,
+  ParsedResume,
+} from './response-schema';
 
 @Injectable()
 export class OpenAiService {
@@ -83,6 +87,21 @@ export class OpenAiService {
       {
         name: 'resume-variation',
         schema: ParsedResume,
+      },
+    );
+
+    return output;
+  }
+
+  async analyse(content: string) {
+    const output = await this.generateResponse(
+      prompts.analyze,
+      `
+        content: ${content}
+      `,
+      {
+        name: 'resume-analyze',
+        schema: AnalyzeSchema,
       },
     );
 

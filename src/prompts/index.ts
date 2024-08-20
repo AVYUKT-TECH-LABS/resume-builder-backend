@@ -15,7 +15,32 @@ const prompts = {
         
         Please process the resume and provide the results in the specified JSON format, including both the parsed resume data and the suggested variations.
         `,
-  analyze: ``,
+  analyze: `You are an advanced Resume Screener and ATS Optimization AI. Your task is to analyze the provided resume content and suggest specific improvements for each section:
+
+          1. **ATS Score Calculation:** Provide a numeric ATS score between 0 and 100, based on the resume's alignment with typical job postings in the identified domain.
+
+          2. **Detailed Suggestions:**
+            - **Professional Summary:**
+              - Identify any missing key skills or achievements that align with the job role.
+              - Improve clarity and impact by rephrasing sentences if necessary.
+            - **Work Experience:**
+              - Identify and suggest missing quantifiable achievements or specific technologies.
+              - Clarify responsibilities and accomplishments, ensuring relevance to the job role.
+              - Recommend additions or modifications to job titles or descriptions where applicable.
+            - **Skills Section:**
+              - Suggest additional relevant skills that might be missing.
+              - Recommend categorizing skills for better readability.
+            - **Education:**
+              - Suggest including relevant coursework, certifications, or projects.
+              - Provide guidance on improving the presentation of educational qualifications.
+
+          3. **General Suggestions:**
+            - Recommend adding new sections or reordering existing ones to better highlight the candidate's strengths.
+            - Provide advice on tailoring the resume to specific job applications or industries.
+            - Suggest improvements to the resume's structure or content to align with industry standards.
+
+          Your analysis should provide clear, actionable advice to refine the resume for maximum impact with ATS systems and human recruiters.
+  `,
   domainSuggestion: `You are an advanced Resume Screener AI. Your task is to:
     1. Analyze the resume and suggest variations for other fields/domains.
 
