@@ -84,4 +84,35 @@ const DomainSuggestions = z.object({
   suggestions: z.array(z.string()),
 });
 
-export { ParsedResume, DomainSuggestions };
+const AnalyzeSchema = z.object({
+  atsScore: z.number(),
+  professionalSummary: z.object({
+    missingSkills: z.array(z.string()),
+    rephrasedSentences: z.array(z.string()),
+  }),
+  workExperience: z.object({
+    missingAchievements: z.array(z.string()),
+    clarifiedResponsibilities: z.array(z.string()),
+    additionalJobTitles: z.array(z.string()),
+  }),
+  skillsSection: z.object({
+    additionalSkills: z.array(z.string()),
+    categorizedSkills: z.array(z.string()),
+  }),
+  education: z.object({
+    relevantCoursework: z.array(z.string()),
+    improvedPresentation: z.string(),
+  }),
+  generalSuggestions: z.object({
+    keywordMatchPercentage: z.number(),
+    resumeLength: z.enum(['Ideal', 'Too Short', 'Too Long']),
+    missingSections: z.array(z.string()),
+    duplicateContent: z.boolean(),
+    readabilityScore: z.number(),
+    sectionRecommendations: z.array(z.string()),
+    tailoringAdvice: z.array(z.string()),
+    structuralImprovements: z.string(),
+  }),
+});
+
+export { AnalyzeSchema, DomainSuggestions, ParsedResume };

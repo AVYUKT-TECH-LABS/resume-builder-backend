@@ -26,12 +26,12 @@ import {
 } from '@nestjs/swagger';
 import axios from 'axios';
 import { GetUser } from '../decorators/user.decorator';
+import { ClerkAuthGuard } from '../guards/clerk.guard';
 import { User } from '../interfaces/user.interface';
 import { Resume } from '../schemas/resume.schema';
 import { Resume as ResumeType } from '../types/index';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 import { ResumeService } from './resume.service';
-import { ClerkAuthGuard } from '../guards/clerk.guard';
 
 @ApiBearerAuth()
 @ApiTags('Resume')
@@ -240,5 +240,10 @@ export class ResumeController {
     @Body('domains') domains: string[],
   ) {
     return this.resumeService.generateDomainSpecific(upload_id, domains);
+  }
+
+  @Get('analyse/:upload_id')
+  async suggestions(@Param('upload_id') upload_id: string) {
+    return this.resumeService.generateAnalyses(upload_id);
   }
 }
