@@ -94,16 +94,10 @@ export class OpenAiService {
   }
 
   async analyse(content: string) {
-    const output = await this.generateResponse(
-      prompts.analyze,
-      `
-        content: ${content}
-      `,
-      {
-        name: 'resume-analyze',
-        schema: AnalyzeSchema,
-      },
-    );
+    const output = await this.generateResponse(prompts.analyze, content, {
+      name: 'resume-analyze',
+      schema: AnalyzeSchema,
+    });
 
     return output;
   }
