@@ -258,4 +258,16 @@ export class ResumeService {
 
     return result;
   }
+
+  async getPdf(upload_id: string) {
+    const uploaded = await this.uploadModel.findById(upload_id, {
+      shortId: 1,
+    });
+
+    const storage = this.cloud.getStorageService();
+
+    const signedUrl = await storage.getSignedUrl(uploaded.shortId);
+
+    return signedUrl;
+  }
 }
