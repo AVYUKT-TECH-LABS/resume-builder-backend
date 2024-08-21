@@ -104,6 +104,11 @@ const AnalyzeSchema = z.object({
     improvedPresentation: z.string(),
   }),
   generalSuggestions: z.object({
+    keywordMatchPercentage: z.number(),
+    resumeLength: z.enum(['Ideal', 'Too Short', 'Too Long']),
+    missingSections: z.array(z.string()),
+    duplicateContent: z.boolean(),
+    readabilityScore: z.number(),
     sectionRecommendations: z.array(z.string()),
     tailoringAdvice: z.array(z.string()),
     structuralImprovements: z.string(),
