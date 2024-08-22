@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
 import { Model } from 'mongoose';
@@ -17,6 +18,7 @@ export class ResumeService {
     @InjectModel(Upload.name) private uploadModel: Model<Upload>,
     private cloud: CloudService,
     private openai: OpenAiService,
+    private config: ConfigService,
   ) {}
   create(userId: string) {
     const createdResume = new this.resumeModel({
@@ -202,7 +204,7 @@ export class ResumeService {
 
     try {
       const response = await axios.post(
-        'http://127.0.0.1:5000/extract',
+        this.config.get<string>('TIKA_ENDPOINT'),
         formData,
         {
           maxContentLength: Infinity,

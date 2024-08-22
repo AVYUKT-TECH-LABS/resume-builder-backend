@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
 import { Storage } from '@google-cloud/storage';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IStorageService } from '../../interfaces/storage.interface';
 
@@ -46,6 +46,7 @@ export class GcpStorageService implements IStorageService {
         version: 'v4',
         action: 'read',
         expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+        responseDisposition: 'inline',
       });
     return url;
   }
