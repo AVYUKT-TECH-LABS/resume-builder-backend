@@ -85,7 +85,16 @@ const DomainSuggestions = z.object({
 });
 
 const AnalyzeSchema = z.object({
-  atsScore: z.number(),
+  atsScore: z.object({
+    score: z.number(),
+    description: z.string(),
+  }),
+  whatYouDidWell: z.array(
+    z.object({
+      area: z.string(),
+      positiveFeedback: z.string(),
+    }),
+  ),
   professionalSummary: z.object({
     missingSkills: z.array(z.string()),
     rephrasedSentences: z.array(z.string()),
@@ -111,7 +120,6 @@ const AnalyzeSchema = z.object({
     readabilityScore: z.number(),
     sectionRecommendations: z.array(z.string()),
     tailoringAdvice: z.array(z.string()),
-    structuralImprovements: z.string(),
   }),
 });
 
