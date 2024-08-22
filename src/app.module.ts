@@ -5,6 +5,7 @@ import clerkConfig from './config/clerk.config';
 import { ResumeModule } from './resume/resume.module';
 import { CloudModule } from './cloud/cloud.module';
 import { OpenAIModule } from './openai/openai.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { OpenAIModule } from './openai/openai.module';
     ResumeModule,
     CloudModule,
     OpenAIModule,
+    PaymentsModule,
   ],
   controllers: [],
   providers: [],
