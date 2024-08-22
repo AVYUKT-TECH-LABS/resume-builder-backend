@@ -246,4 +246,9 @@ export class ResumeController {
   async suggestions(@Param('upload_id') upload_id: string) {
     return this.resumeService.generateAnalyses(upload_id);
   }
+
+  @Get('getPdf/:upload_id')
+  async getResumePdf(@Param('upload_id') upload_id: string) {
+    return this.resumeService.getPdf(upload_id);
+  }
 }

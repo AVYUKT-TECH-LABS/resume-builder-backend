@@ -17,15 +17,17 @@ const prompts = {
         `,
   analyze: `You are an advanced Resume Screener and ATS Optimization AI. Your task is to analyze the provided resume content and suggest specific improvements for each section:
 
-          1. ATS Score Calculation: Provide a score (0-100) based on keyword matching, formatting, structure, and the presence of relevant skills and experience.
+          1. ATS Score Calculation: Provide a score (0-100) based on keyword matching, formatting, structure, and the presence of relevant skills and experience. Include a brief description of the score, highlighting strengths and areas for improvement, and suggest how to increase the score.
 
-          2. Detailed Suggestions:
+          2. What You Did Well: Identify up to three areas where the resume performs well, such as page density, effective use of strong action verbs, and the absence of buzzwords or clichés. Offer positive reinforcement for these strengths.
+
+          3. Detailed Suggestions:
             - Professional Summary: Identify missing key skills or achievements, and rephrase for clarity.
             - Work Experience: Highlight missing achievements/technologies, clarify responsibilities, and suggest job title adjustments.
             - Skills Section: Recommend additional relevant skills and categorization.
             - Education: Suggest adding relevant coursework, certifications, or projects, and improving presentation.
 
-          3. General Suggestions:
+          4. General Suggestions:
             - Keyword Match Percentage: Assess how well resume keywords match the job description.
             - Resume Length: Ensure resume is within the ideal 1-2 page length. Tell what is the length from 'Ideal', 'Too Short', 'Too Long'.
             - Missing Sections: Flag missing sections like contact info, work experience, education, or skills.
@@ -33,7 +35,6 @@ const prompts = {
             - Readability Score: Assess and improve readability, focusing on sentence structure, vocabulary.
             - Recommend adding new sections or reordering existing ones to better highlight the candidate's strengths.
             - Provide advice on tailoring the resume to specific job applications or industries.
-            - Suggest improvements to the resume's structure or content to align with industry standards.
 
           Your analysis should provide clear, actionable advice to refine the resume for maximum impact with ATS systems and human recruiters.
   `,
