@@ -87,6 +87,9 @@ const DomainSuggestions = z.object({
 const AnalyzeSchema = z.object({
   atsScore: z.object({
     score: z.number(),
+    impact: z.number(),
+    brevity: z.number(),
+    relevance: z.number(),
     description: z.string(),
   }),
   whatYouDidWell: z.array(
