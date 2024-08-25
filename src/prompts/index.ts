@@ -43,7 +43,7 @@ const prompts = {
 
     Guidelines:
     - Extract relevant domain from the resume (e.g. Full Stack Developer, Computer Operator).
-    - Suggest up to 4 relevant domains in which the resume can be varied, based on the resume content.
+    - Suggest up to 10 relevant domains in which the resume can be varied, based on the resume content.
   `,
   variation: `
   You are an elite resume optimization specialist with expertise in tailoring professional profiles for specific domains. Your task is to meticulously adapt the provided resume to align precisely with the specified target domain. Please adhere to the following guidelines:
