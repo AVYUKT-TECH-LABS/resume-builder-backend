@@ -5,6 +5,7 @@ import clerkConfig from './config/clerk.config';
 import { ResumeModule } from './resume/resume.module';
 import { CloudModule } from './cloud/cloud.module';
 import { OpenAIModule } from './openai/openai.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { OpenAIModule } from './openai/openai.module';
     CloudModule,
     OpenAIModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [],
 })
 export class AppModule {}
