@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^0.0.53",
     "@clerk/clerk-sdk-node": "^5.0.26",
     "@google-cloud/storage": "^7.12.1",
     "@nestjs/common": "^10.0.0",
@@ -28,6 +29,7 @@
     "@nestjs/mongoose": "^10.0.10",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.4.0",
+    "ai": "^3.3.17",
     "aws-sdk": "^2.1677.0",
     "axios": "^1.7.4",
     "class-transformer": "^0.5.1",
