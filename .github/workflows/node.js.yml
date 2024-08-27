@@ -1,27 +1,49 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
 name: Node.js CI
-
 on:
   push:
     branches: [ "main" ]
-
 jobs:
   build:
     runs-on: self-hosted
     strategy:
       matrix:
         node-version: [18.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
     steps:
     - uses: actions/checkout@v4
+    
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
-    - run: export NODE_OPTIONS=--max-old-space-size=2048
-    - run: yarn install --frozen-lockfile
-    - run: yarn build
+    
+    - name: Set NODE_OPTIONS
+      run: echo "NODE_OPTIONS=--max-old-space-size=1800" >> $GITHUB_ENV
+    
+    - name: Clear yarn cache
+      run: yarn cache clean
+    
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile --production
+    
+    - name: Build
+      run: yarn build
+    
+    - name: Deploy with PM2
+      run: |
+        # Check if PM2 is installed globally, if not install it
+        if ! command -v pm2 &> /dev/null; then
+          sudo npm install -g pm2
+        fi
+        
+        # Check if the process named 'backend' exists
+        if pm2 list | grep -q "backend"; then
+          # If it exists, restart it
+          pm2 restart backend
+        else
+          # If it doesn't exist, start it
+          pm2 start "yarn start:prod" --name backend
+        fi
+        
+        # Save the PM2 process list
+        pm2 save
