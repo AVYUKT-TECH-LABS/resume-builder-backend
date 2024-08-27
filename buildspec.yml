@@ -9,9 +9,8 @@ phases:
 
   build:
     commands:
-      - yarn
-      # - yarn add sharp --ignore-engines
-      # - yarn generate:sql && yarn generate:mongo
+      - yarn cache clean
+      - yarn --frozen-lockfile
       - yarn build
   # post_build:
   #   commands:
