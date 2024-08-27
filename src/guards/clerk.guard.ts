@@ -19,23 +19,31 @@ export class ClerkAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
-    const token = request.cookies.__session;
 
-    if (!token) throw new UnauthorizedException();
+    // Extract token from Authorization header
+    const authHeader = request.headers['authorization'];
+    if (!authHeader)
+      throw new UnauthorizedException('Authorization header missing');
+
+    const token = authHeader.split(' ')[1];
+    if (!token)
+      throw new UnauthorizedException('Token missing in Authorization header');
 
     try {
+      // Verify the token using Clerk's client
       const payload = await this.clerkClient.verifyToken(token);
       const { sub, sid, iat, exp } = payload;
-      const user = {
+
+      // Attach the user information to the request object
+      request['user'] = {
         id: sub,
         sessionId: sid,
         issuedAt: iat,
         expiresAt: exp,
       };
-      request['user'] = user;
     } catch (err) {
       this.logger.error(err);
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Token verification failed');
     }
 
     return true;
