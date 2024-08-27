@@ -30,26 +30,9 @@ export class OpenAiService {
     },
   ) {
     try {
-      const { object } = await generateObject({
-        model: openai(this.config.get<string>('AI_MODEL')),
-        schema: formatter.schema,
-        messages: [
-          {
-            role: 'system',
-            content: prompt,
-          },
-          {
-            role: 'user',
-            content: input,
-          },
-        ],
-        maxTokens:
-          Number(this.config.get<number>('OPEN_AI_MAX_TOKENS')) || 2000,
-        temperature:
-          Number(this.config.get<number>('OPEN_AI_TEMPERATURE')) || 0.5,
-      });
-      // const response = await this.openai.beta.chat.completions.parse({
-      //   model: this.config.get('AI_MODEL') || 'gpt-4o-mini',
+      // const { object } = await generateObject({
+      //   model: openai(this.config.get<string>('AI_MODEL')),
+      //   schema: formatter.schema,
       //   messages: [
       //     {
       //       role: 'system',
@@ -60,16 +43,33 @@ export class OpenAiService {
       //       content: input,
       //     },
       //   ],
-      //   max_tokens:
+      //   maxTokens:
       //     Number(this.config.get<number>('OPEN_AI_MAX_TOKENS')) || 2000,
       //   temperature:
       //     Number(this.config.get<number>('OPEN_AI_TEMPERATURE')) || 0.5,
-      //   response_format: zodResponseFormat(formatter.schema, formatter.name),
       // });
+      // return object;
 
-      return object;
+      const response = await this.openai.beta.chat.completions.parse({
+        model: this.config.get('AI_MODEL') || 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: prompt,
+          },
+          {
+            role: 'user',
+            content: input,
+          },
+        ],
+        max_tokens:
+          Number(this.config.get<number>('OPEN_AI_MAX_TOKENS')) || 2000,
+        temperature:
+          Number(this.config.get<number>('OPEN_AI_TEMPERATURE')) || 0.5,
+        response_format: zodResponseFormat(formatter.schema, formatter.name),
+      });
 
-      // return response.choices[0].message.parsed;
+      return response.choices[0].message.parsed;
     } catch (error) {
       console.error('Error calling OpenAI API:', error);
       throw new Error('Failed to generate response from OpenAI');
