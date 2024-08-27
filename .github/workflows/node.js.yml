@@ -17,9 +17,6 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
     
-    - name: Set NODE_OPTIONS
-      run: echo "NODE_OPTIONS=--max-old-space-size=1800" >> $GITHUB_ENV
-    
     - name: Clear yarn cache
       run: yarn cache clean
     
@@ -27,7 +24,7 @@ jobs:
       run: yarn install --frozen-lockfile
     
     - name: Build
-      run: yarn build
+      run: NODE_OPTIONS="--max-old-space-size=2048" yarn build
     
     - name: Deploy with PM2
       run: |
