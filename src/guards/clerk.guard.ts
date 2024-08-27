@@ -21,6 +21,8 @@ export class ClerkAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const token = request.cookies.__session;
 
+    console.log(token);
+
     if (!token) throw new UnauthorizedException();
 
     try {
