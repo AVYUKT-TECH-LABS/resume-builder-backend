@@ -6,15 +6,23 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Define the regex pattern for dynamic PR preview domains
-  const allowedOriginRegex = /^https:\/\/(?:[\w-]+\.)*talentxcel\.net$/;
+  // Define the regex patterns based on the environment
+  const allowedOriginRegexDev = /^https:\/\/(?:[\w-]+\.)*talentxcel\.net$/;
+  const allowedOriginRegexProd = /^https:\/\/talentxcel\.net$/;
+
+  // Check the environment
+  const isDevelopment = process.env.NODE_ENV === 'development';
 
   app.enableCors({
     origin: (origin, callback) => {
       const allowedOrigins = [
         'http://localhost:3001',
-        'https://talentxcel.net',
+        ...(isDevelopment ? [] : ['https://talentxcel.net']),
       ];
+
+      const allowedOriginRegex = isDevelopment
+        ? allowedOriginRegexDev
+        : allowedOriginRegexProd;
 
       // Allow requests with no origin (e.g., mobile apps, curl)
       if (
