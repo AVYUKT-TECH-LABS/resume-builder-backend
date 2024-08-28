@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   FileTypeValidator,
+  ForbiddenException,
   Get,
   Headers,
   InternalServerErrorException,
@@ -30,26 +31,30 @@ import { ClerkAuthGuard } from '../guards/clerk.guard';
 import { User } from '../interfaces/user.interface';
 import { Resume } from '../schemas/resume.schema';
 import { Resume as ResumeType } from '../types/index';
+import { hasCredits } from '../utils/credits';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 import { ResumeService } from './resume.service';
 
 @ApiBearerAuth()
 @ApiTags('Resume')
 @Controller('resume')
-@UseGuards(ClerkAuthGuard)
 export class ResumeController {
   constructor(private readonly resumeService: ResumeService) {}
 
+  @UseGuards(ClerkAuthGuard)
   @Post('create')
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Create resume (CreateResumeDTO)' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 201, description: 'Created' })
-  create(@GetUser() user: User) {
+  async create(@GetUser() user: User) {
+    const hasEnoughCredits = await hasCredits(user.id, 30);
+    if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
     return this.resumeService.create(user.id);
   }
 
+  @UseGuards(ClerkAuthGuard)
   @Get('list')
   @ApiOperation({ summary: 'Get all resumes of a user' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
@@ -72,11 +77,13 @@ export class ResumeController {
   }
 
   @Get('read/:id')
+  @UseGuards(ClerkAuthGuard)
   findOne(@Param('id') id: string, @GetUser() user: User) {
     return this.resumeService.findOne(id, user.id);
   }
 
   @Patch('update/:id')
+  @UseGuards(ClerkAuthGuard)
   update(
     @Param('id') id: string,
     @Body() updateResumeDto: UpdateResumeDto,
@@ -86,11 +93,13 @@ export class ResumeController {
   }
 
   @Delete('delete/:id')
-  remove(@Param('id') id: string) {
-    return this.resumeService.remove(id);
+  @UseGuards(ClerkAuthGuard)
+  remove(@Param('id') id: string, @GetUser() user: User) {
+    return this.resumeService.remove(id, user.id);
   }
 
   @Post('upload')
+  @UseGuards(ClerkAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadResume(
     @GetUser() user: User,
@@ -109,7 +118,7 @@ export class ResumeController {
         throw new BadRequestException('No file uploaded');
       }
 
-      const userId = user.id;
+      const userId = user.id || 'GUEST_USER';
 
       return this.resumeService.uploadResume(userId, file);
     } catch (err) {
@@ -229,17 +238,26 @@ export class ResumeController {
     }
   }
 
+  @UseGuards(ClerkAuthGuard)
   @Get('suggestDomains/:upload_id')
   async suggestDomains(@Param('upload_id') upload_id: string) {
     return this.resumeService.suggestDomains(upload_id);
   }
 
+  @UseGuards(ClerkAuthGuard)
   @Post('domainSpecific/:upload_id')
   async domainSpecific(
     @Param('upload_id') upload_id: string,
     @Body('domains') domains: string[],
+    @GetUser() user: User,
   ) {
-    return this.resumeService.generateDomainSpecific(upload_id, domains);
+    try {
+      const hasEnoughCredits = await hasCredits(user.id, 30 * domains.length);
+      if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
+      return this.resumeService.generateDomainSpecific(upload_id, domains);
+    } catch (err) {
+      throw err;
+    }
   }
 
   @Get('analyse/:upload_id')

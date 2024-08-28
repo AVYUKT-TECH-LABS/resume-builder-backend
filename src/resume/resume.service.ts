@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
@@ -10,6 +10,7 @@ import { Upload } from '../schemas/upload.schema';
 import { Resume as ResumeType } from '../types/index';
 import shortId from '../utils/shortid';
 import { UpdateResumeDto } from './dto/update-resume.dto';
+import { deductCredits } from '../utils/credits';
 
 @Injectable()
 export class ResumeService {
@@ -20,62 +21,71 @@ export class ResumeService {
     private openai: OpenAiService,
     private config: ConfigService,
   ) {}
-  create(userId: string) {
-    const createdResume = new this.resumeModel({
-      userId,
-      name: '',
-      page: {
-        size: 'A4',
-        background: null,
-        margins: 10,
-        spacing: 1,
-      },
-      template: 'ivy',
-      font: '',
-      color: '#000',
-      resume: {
-        id: 'resume-id',
-        contact: {
-          settings: [
-            {
-              key: 'showTitle',
-              name: 'Show Title',
-              value: true,
-            },
-            {
-              key: 'showPhone',
-              name: 'Show Phone',
-              value: true,
-            },
-            {
-              key: 'showLink',
-              name: 'Show Link',
-              value: true,
-            },
-            {
-              key: 'showEmail',
-              name: 'Show Email',
-              value: true,
-            },
-            {
-              key: 'showLocation',
-              name: 'Show Location',
-              value: true,
-            },
-          ],
-          data: {
-            name: '',
-            title: '',
-            phone: '',
-            link: '',
-            email: '',
-            location: '',
-          },
+
+  async create(userId: string) {
+    try {
+      const createdResume = new this.resumeModel({
+        userId,
+        name: '',
+        page: {
+          size: 'A4',
+          background: null,
+          margins: 10,
+          spacing: 1,
         },
-        sections: [],
-      },
-    });
-    return createdResume.save();
+        template: 'ivy',
+        font: '',
+        color: '#000',
+        resume: {
+          id: 'resume-id',
+          contact: {
+            settings: [
+              {
+                key: 'showTitle',
+                name: 'Show Title',
+                value: true,
+              },
+              {
+                key: 'showPhone',
+                name: 'Show Phone',
+                value: true,
+              },
+              {
+                key: 'showLink',
+                name: 'Show Link',
+                value: true,
+              },
+              {
+                key: 'showEmail',
+                name: 'Show Email',
+                value: true,
+              },
+              {
+                key: 'showLocation',
+                name: 'Show Location',
+                value: true,
+              },
+            ],
+            data: {
+              name: '',
+              title: '',
+              phone: '',
+              link: '',
+              email: '',
+              location: '',
+            },
+          },
+          sections: [],
+        },
+      });
+
+      const saved = createdResume.save();
+      await deductCredits(userId, 30);
+
+      return saved;
+    } catch (err) {
+      throw new InternalServerErrorException('Failed to create resume');
+    }
   }
 
   findAll(userId: string) {
@@ -116,11 +126,13 @@ export class ResumeService {
     // return 'ok';
   }
 
-  remove(id: string) {
-    return this.resumeModel.deleteOne({ _id: id }).exec();
+  remove(id: string, userId: string) {
+    return this.resumeModel.deleteOne({ _id: id, userId }).exec();
   }
 
   async createFromData(userId: string, resumeData: ResumeType, name: string) {
+    await deductCredits(userId, 30);
+
     return this.resumeModel.create({
       userId,
       name,
@@ -243,7 +255,12 @@ export class ResumeService {
         domain,
       )) as ResumeType;
 
-      return this.createFromData(uploaded.userId, resume, `${domain} resume`);
+      const created = await this.createFromData(
+        uploaded.userId,
+        resume,
+        `${domain} resume`,
+      );
+      return created;
     });
 
     await Promise.all(promises);
@@ -257,7 +274,7 @@ export class ResumeService {
     });
 
     const result = await this.openai.analyse(uploaded.rawContent);
-
+    await deductCredits(uploaded.userId, 50);
     return result;
   }
 
