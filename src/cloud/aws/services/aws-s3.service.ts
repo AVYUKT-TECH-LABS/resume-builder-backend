@@ -14,24 +14,52 @@ export class AwsS3Service implements IStorageService {
       secretAccessKey: this.configService.get<string>('AWS_SECRET_ACCESS_KEY'),
       region: this.configService.get<string>('AWS_REGION'),
     });
-    this.bucket = this.configService.get<string>('AWS_BUCKET_NAME');
+    this.bucket = this.configService.get<string>('STORAGE_BUCKET');
   }
 
   async uploadFile(
     file: Express.Multer.File,
     filename: string,
   ): Promise<string> {
-    // Implement S3 upload logic here
-    throw new Error('Method not implemented.');
+    const params = {
+      Bucket: this.bucket,
+      Key: filename,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    };
+
+    try {
+      const result = await this.s3.upload(params).promise();
+      return result.Location;
+    } catch (error) {
+      throw new Error(`Failed to upload file: ${error.message}`);
+    }
   }
 
   async deleteFile(filename: string): Promise<void> {
-    // Implement S3 delete logic here
-    throw new Error('Method not implemented.');
+    const params = {
+      Bucket: this.bucket,
+      Key: filename,
+    };
+
+    try {
+      await this.s3.deleteObject(params).promise();
+    } catch (error) {
+      throw new Error(`Failed to delete file: ${error.message}`);
+    }
   }
 
   async getSignedUrl(filename: string): Promise<string> {
-    // Implement S3 signed URL generation logic here
-    throw new Error('Method not implemented.');
+    const params = {
+      Bucket: this.bucket,
+      Key: filename,
+      Expires: 3600, // URL expiration time in seconds (1 hour in this case)
+    };
+
+    try {
+      return await this.s3.getSignedUrlPromise('getObject', params);
+    } catch (error) {
+      throw new Error(`Failed to generate signed URL: ${error.message}`);
+    }
   }
 }
