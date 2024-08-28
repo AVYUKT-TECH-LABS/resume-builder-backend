@@ -5,12 +5,41 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Define the regex patterns based on the environment
+  const allowedOriginRegexDev = /^https:\/\/(?:[\w-]+\.)*talentxcel\.net$/;
+  const allowedOriginRegexProd = /^https:\/\/talentxcel\.net$/;
+
+  // Check the environment
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
   app.enableCors({
-    origin: 'http://localhost:3001',
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'http://localhost:3001',
+        ...(isDevelopment ? [] : ['https://talentxcel.net']),
+      ];
+
+      const allowedOriginRegex = isDevelopment
+        ? allowedOriginRegexDev
+        : allowedOriginRegexProd;
+
+      // Allow requests with no origin (e.g., mobile apps, curl)
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        allowedOriginRegex.test(origin)
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
+
   app.use(cookieParser());
 
   const config = new DocumentBuilder()
@@ -19,9 +48,12 @@ async function bootstrap() {
     .setVersion('1.0')
     .addCookieAuth()
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(3000);
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
 }
+
 bootstrap();

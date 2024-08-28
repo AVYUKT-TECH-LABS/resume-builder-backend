@@ -6,6 +6,7 @@ import { ResumeModule } from './resume/resume.module';
 import { CloudModule } from './cloud/cloud.module';
 import { OpenAIModule } from './openai/openai.module';
 import { PaymentsModule } from './payments/payments.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { PaymentsModule } from './payments/payments.module';
     OpenAIModule,
     PaymentsModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [],
 })
 export class AppModule {}

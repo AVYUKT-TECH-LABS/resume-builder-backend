@@ -9,6 +9,8 @@ import {
   DomainSuggestions,
   ParsedResume,
 } from './response-schema';
+import { generateObject } from 'ai';
+import { openai } from '@ai-sdk/openai';
 
 @Injectable()
 export class OpenAiService {
@@ -28,6 +30,26 @@ export class OpenAiService {
     },
   ) {
     try {
+      // const { object } = await generateObject({
+      //   model: openai(this.config.get<string>('AI_MODEL')),
+      //   schema: formatter.schema,
+      //   messages: [
+      //     {
+      //       role: 'system',
+      //       content: prompt,
+      //     },
+      //     {
+      //       role: 'user',
+      //       content: input,
+      //     },
+      //   ],
+      //   maxTokens:
+      //     Number(this.config.get<number>('OPEN_AI_MAX_TOKENS')) || 2000,
+      //   temperature:
+      //     Number(this.config.get<number>('OPEN_AI_TEMPERATURE')) || 0.5,
+      // });
+      // return object;
+
       const response = await this.openai.beta.chat.completions.parse({
         model: this.config.get('AI_MODEL') || 'gpt-4o-mini',
         messages: [

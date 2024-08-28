@@ -1,0 +1,20 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo Installing source NPM dependencies...
+      - npm i -g yarn typescript @nestjs/cli
+
+  build:
+    commands:
+      - yarn cache clean
+      - yarn --frozen-lockfile
+      - yarn build
+  # post_build:
+  #   commands:
+  #     -
+artifacts:
+  files:
+    - '**/*'

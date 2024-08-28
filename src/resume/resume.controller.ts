@@ -97,7 +97,7 @@ export class ResumeController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 100000 }),
+          new MaxFileSizeValidator({ maxSize: 500000 }),
           new FileTypeValidator({ fileType: 'application/pdf' }),
         ],
       }),
