@@ -1,16 +1,17 @@
+import { openai } from '@ai-sdk/openai';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { generateObject } from 'ai';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { ZodType, ZodTypeDef } from 'zod';
 import prompts from '../prompts';
 import {
   AnalyzeSchema,
+  AnalyzeSchemaFree,
   DomainSuggestions,
   ParsedResume,
 } from './response-schema';
-import { generateObject } from 'ai';
-import { openai } from '@ai-sdk/openai';
 
 @Injectable()
 export class OpenAiService {
@@ -115,7 +116,16 @@ export class OpenAiService {
     return output;
   }
 
-  async analyse(content: string) {
+  async analyse(content: string, isFree = false) {
+    if (isFree) {
+      const output = await this.generateResponse(prompts.analyzeFree, content, {
+        name: 'resume-analyze',
+        schema: AnalyzeSchemaFree,
+      });
+
+      return output;
+    }
+
     const output = await this.generateResponse(prompts.analyze, content, {
       name: 'resume-analyze',
       schema: AnalyzeSchema,

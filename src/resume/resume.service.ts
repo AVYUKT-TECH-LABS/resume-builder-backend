@@ -8,9 +8,9 @@ import { OpenAiService } from '../openai/openai.service';
 import { Resume } from '../schemas/resume.schema';
 import { Upload } from '../schemas/upload.schema';
 import { Resume as ResumeType } from '../types/index';
+import { deductCredits } from '../utils/credits';
 import shortId from '../utils/shortid';
 import { UpdateResumeDto } from './dto/update-resume.dto';
-import { deductCredits } from '../utils/credits';
 
 @Injectable()
 export class ResumeService {
@@ -95,7 +95,7 @@ export class ResumeService {
         {
           createdAt: 1,
           updatedAt: 1,
-          resume: 1,
+          'resume.contact': 1,
           name: 1,
           _id: 1,
         },
@@ -267,7 +267,17 @@ export class ResumeService {
     return 'ok';
   }
 
-  async generateAnalyses(upload_id: string) {
+  async generateAnalyses(upload_id: string, isFree: string) {
+    if (isFree === 'true') {
+      const uploaded = await this.uploadModel.findById(upload_id, {
+        rawContent: 1,
+        userId: 1,
+      });
+
+      const result = await this.openai.analyse(uploaded.rawContent, true);
+      return result;
+    }
+
     const uploaded = await this.uploadModel.findById(upload_id, {
       rawContent: 1,
       userId: 1,

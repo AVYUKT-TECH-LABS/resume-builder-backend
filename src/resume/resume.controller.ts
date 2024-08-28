@@ -13,6 +13,7 @@ import {
   ParseFilePipe,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -119,6 +120,34 @@ export class ResumeController {
       }
 
       const userId = user.id || 'GUEST_USER';
+
+      return this.resumeService.uploadResume(userId, file);
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new InternalServerErrorException('Failed to upload resume');
+    }
+  }
+
+  @Post('uploadNoLogin')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadResumeWithoutLogin(
+    @GetUser() user: User,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 500000 }),
+          new FileTypeValidator({ fileType: 'application/pdf' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    try {
+      if (!file) {
+        throw new BadRequestException('No file uploaded');
+      }
+
+      const userId = 'GUEST_USER';
 
       return this.resumeService.uploadResume(userId, file);
     } catch (err) {
@@ -261,8 +290,11 @@ export class ResumeController {
   }
 
   @Get('analyse/:upload_id')
-  async suggestions(@Param('upload_id') upload_id: string) {
-    return this.resumeService.generateAnalyses(upload_id);
+  async suggestions(
+    @Param('upload_id') upload_id: string,
+    @Query('isFree') isFree: string,
+  ) {
+    return this.resumeService.generateAnalyses(upload_id, isFree);
   }
 
   @Get('getPdf/:upload_id')

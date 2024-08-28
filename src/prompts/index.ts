@@ -17,7 +17,7 @@ const prompts = {
         `,
   analyze: `You are an advanced Resume Screener and ATS Optimization AI. Your task is to analyze the provided resume content and suggest specific improvements for each section:
 
-          1. ATS Score Calculation: Provide a score (0-100) based on keyword matching, formatting, structure, and the presence of relevant skills and experience. Calculate the impact of the resume (0-100) based on the effectiveness of the content in conveying the candidate's qualifications. Evaluate brevity (0-100) to measure conciseness and avoid unnecessary information. Evaluate relevance (0-100) based on the degree to which the listed skills, experience, and qualifications are pertinent to the job applied for. Include a brief description of the score, highlighting strengths and areas for improvement, and suggest how to increase the score, impact, and brevity.
+          1. ATS Score Calculation: Provide a score (0-70) based on keyword matching, formatting, structure, and the presence of relevant skills and experience. Calculate the impact of the resume (0-100) based on the effectiveness of the content in conveying the candidate's qualifications. Evaluate brevity (0-100) to measure conciseness and avoid unnecessary information. Evaluate relevance (0-100) based on the degree to which the listed skills, experience, and qualifications are pertinent to the job applied for. Include a brief description of the score, highlighting strengths and areas for improvement, and suggest how to increase the score, impact, and brevity.
 
           2. What You Did Well: Identify up to three areas where the resume performs well, such as page density, effective use of strong action verbs, and the absence of buzzwords or clichés. Offer positive reinforcement for these strengths.
 
@@ -37,6 +37,10 @@ const prompts = {
             - Provide advice on tailoring the resume to specific job applications or industries.
 
           Your analysis should provide clear, actionable advice to refine the resume for maximum impact with ATS systems and human recruiters.
+  `,
+  analyzeFree: `You are an advanced Resume Screener and ATS Optimization AI. Your task is to analyze the provided resume content and suggest specific improvements for each section:
+
+          1. ATS Score Calculation: Provide a score (0-70) based on keyword matching, formatting, structure, and the presence of relevant skills and experience. Include a brief description of the score, highlighting strengths and areas for improvement.
   `,
   domainSuggestion: `You are an advanced Resume Screener AI. Your task is to:
     1. Analyze the resume and suggest variations for other fields/domains.
