@@ -43,6 +43,9 @@ export class PaymentsService {
     const rzpOrder = await this.razorpay.orders.create({
       amount: plan.amount,
       currency: 'INR',
+      notes: {
+        env: this.configService.get<string>('NODE_ENV'),
+      },
       customer_details: {
         name: user.fullName,
         email: user.emailAddresses[0]?.emailAddress,
@@ -109,6 +112,9 @@ export class PaymentsService {
   }
 
   validateSignature(payload, signature) {
+    const isDev = this.configService.get('NODE_ENV');
+    if (isDev) return true;
+
     const secret = this.configService.get<string>('RZP_KEY_SECRET');
     const expectedSignature = crypto
       .createHmac('sha256', secret)
@@ -120,27 +126,70 @@ export class PaymentsService {
     return true;
   }
 
-  async webhook(payload: Record<string, any>) {
+  async processWebhook(payload: Record<string, any>): Promise<string> {
     const { event, payload: eventPayload } = payload;
 
-    // Only process order.paid events
-    if (event === 'order.paid') {
-      // const payment = eventPayload.payment.entity;
-      const order = eventPayload.order.entity;
-
-      // Find the order in the database using the Razorpay order ID
-      const existingOrder = await this.orderModel.findOne({
-        pg_orderId: order.id,
-      });
-
-      if (existingOrder) {
-        existingOrder.status = order.status;
-        existingOrder.amount = (order.amount / 100).toString();
-        existingOrder.currency = order.currency;
-        await existingOrder.save();
-      }
+    if (event !== 'order.paid') {
+      return 'IGNORED';
     }
 
-    return { status: 'success' };
+    const order = eventPayload.order.entity;
+
+    if (order.notes.env !== this.configService.get('NODE_ENV')) {
+      return 'ENV_MISMATCH';
+    }
+
+    const session = await this.orderModel.startSession();
+    session.startTransaction();
+
+    try {
+      const existingOrder = await this.orderModel
+        .findOne({ pg_orderId: order.id })
+        .session(session);
+
+      if (!existingOrder) {
+        return 'ORDER_NOT_FOUND';
+      }
+
+      existingOrder.status = order.status;
+      existingOrder.amount = (order.amount / 100).toString();
+      existingOrder.currency = order.currency;
+      existingOrder.status = 'PAID';
+
+      const { planId, userId } = existingOrder;
+
+      const plan = await this.planModel
+        .findOne(
+          {
+            _id: planId,
+            isActive: true,
+            amount: order.amount,
+          },
+          { credits: 1 },
+        )
+        .session(session);
+
+      if (!plan) {
+        return 'PLAN_NOT_FOUND';
+      }
+      const user = await clerkClient.users.getUser(userId);
+      const updatedCredits =
+        Number(user.publicMetadata.credits || 0) + plan.credits;
+
+      await clerkClient.users.updateUserMetadata(userId, {
+        publicMetadata: { credits: updatedCredits },
+      });
+
+      await existingOrder.save({ session });
+      await session.commitTransaction();
+
+      return 'SUCCESS';
+    } catch (error) {
+      await session.abortTransaction();
+      console.error('Webhook processing error:', error);
+      return 'SUCCESS';
+    } finally {
+      session.endSession();
+    }
   }
 }

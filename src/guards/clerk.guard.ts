@@ -18,7 +18,7 @@ export class ClerkAuthGuard implements CanActivate {
   }
 
   async canActivate(context: ExecutionContext) {
-    if (process.env.NODE_ENV == 'development') return true;
+    // if (process.env.NODE_ENV == 'development') return true;
     const request = context.switchToHttp().getRequest();
 
     // Extract token from Authorization header
@@ -35,12 +35,15 @@ export class ClerkAuthGuard implements CanActivate {
       const payload = await this.clerkClient.verifyToken(token);
       const { sub, sid, iat, exp } = payload;
 
+      const user = await this.clerkClient.users.getUser(sub);
+
       // Attach the user information to the request object
       request['user'] = {
         id: sub,
         sessionId: sid,
         issuedAt: iat,
         expiresAt: exp,
+        credits: Number(user.publicMetadata.credits) || 0,
       };
     } catch (err) {
       this.logger.error(err);

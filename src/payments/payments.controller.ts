@@ -17,11 +17,11 @@ import { User } from '../interfaces/user.interface';
 import { PaymentsService } from './payments.service';
 
 @Controller('payments')
-@UseGuards(ClerkAuthGuard)
 export class PaymentsController {
   private logger: Logger = new Logger(PaymentsController.name);
   constructor(private paymentService: PaymentsService) {}
 
+  @UseGuards(ClerkAuthGuard)
   @Post('/order/create')
   async createOrder(@GetUser() user: User, @Body('plan') plan: string) {
     try {
@@ -48,10 +48,10 @@ export class PaymentsController {
   ) {
     const isValid = this.paymentService.validateSignature(payload, signature);
     if (!isValid) throw new BadRequestException('Invalid Signature');
-    this.paymentService.webhook(payload);
-    return 'ok';
+    return this.paymentService.processWebhook(payload);
   }
 
+  @UseGuards(ClerkAuthGuard)
   @Get('status/:orderId')
   getStatus(@Param('orderId') orderId: string) {
     try {

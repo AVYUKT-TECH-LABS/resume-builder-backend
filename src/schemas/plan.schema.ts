@@ -15,10 +15,7 @@ export class Plan {
   display_amount: number;
 
   @Prop({ required: true })
-  billingFrequency: string; // 'monthly', 'yearly', etc.
-
-  @Prop({ type: Map, of: Number })
-  featureLimits: Map<string, number>;
+  credits: number;
 
   @Prop()
   description: string;
