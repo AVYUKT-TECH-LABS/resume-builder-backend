@@ -7,7 +7,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Define the regex pattern for dynamic PR preview domains
-  const allowedOriginRegex = /^https:\/\/(?:dev|pr-\d+)\.talentxcel\.net$/;
+  const allowedOriginRegex = /^https:\/\/(?:[\w-]+\.)*talentxcel\.net$/;
 
   app.enableCors({
     origin: (origin, callback) => {
