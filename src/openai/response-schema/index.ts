@@ -129,10 +129,6 @@ const AnalyzeSchema = z.object({
 const AnalyzeSchemaFree = z.object({
   atsScore: z.object({
     score: z.number(),
-    impact: z.number(),
-    brevity: z.number(),
-    relevance: z.number(),
-    description: z.string(),
   }),
 });
 
