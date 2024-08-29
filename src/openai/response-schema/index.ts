@@ -126,4 +126,10 @@ const AnalyzeSchema = z.object({
   }),
 });
 
-export { AnalyzeSchema, DomainSuggestions, ParsedResume };
+const AnalyzeSchemaFree = z.object({
+  atsScore: z.object({
+    score: z.number(),
+  }),
+});
+
+export { AnalyzeSchema, AnalyzeSchemaFree, DomainSuggestions, ParsedResume };
