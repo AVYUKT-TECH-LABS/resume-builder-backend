@@ -95,7 +95,7 @@ export class ResumeService {
         {
           createdAt: 1,
           updatedAt: 1,
-          'resume.contact': 1,
+          'resume.contact.data.title': 1,
           name: 1,
           _id: 1,
         },
