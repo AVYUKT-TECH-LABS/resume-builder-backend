@@ -239,7 +239,6 @@ export class ResumeService {
     });
 
     const suggestions = await this.openai.suggestDomains(uploaded.rawContent);
-
     return suggestions;
   }
 
@@ -268,23 +267,16 @@ export class ResumeService {
   }
 
   async generateAnalyses(upload_id: string, isFree: string) {
-    if (isFree === 'true') {
-      const uploaded = await this.uploadModel.findById(upload_id, {
-        rawContent: 1,
-        userId: 1,
-      });
-
-      const result = await this.openai.analyse(uploaded.rawContent, true);
-      return result;
-    }
-
     const uploaded = await this.uploadModel.findById(upload_id, {
       rawContent: 1,
       userId: 1,
     });
 
-    const result = await this.openai.analyse(uploaded.rawContent);
-    await deductCredits(uploaded.userId, 50);
+    const result = await this.openai.analyse(
+      uploaded.rawContent,
+      Boolean(isFree),
+    );
+    if (!Boolean(isFree)) await deductCredits(uploaded.userId, 50);
     return result;
   }
 
