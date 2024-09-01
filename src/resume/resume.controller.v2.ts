@@ -4,29 +4,22 @@ import {
   Body,
   Controller,
   Delete,
-  FileTypeValidator,
   ForbiddenException,
   Get,
   InternalServerErrorException,
   Logger,
-  MaxFileSizeValidator,
   Param,
-  ParseFilePipe,
   Patch,
   Post,
-  Query,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../decorators/user.decorator';
 import { ClerkAuthGuard } from '../guards/clerk.guard';
-import { CreateResumeDTO, UpdateResumeDTO } from './dto/resumev2.dto';
-import { ResumeServiceV2 } from './resumev2.service';
 import { hasCredits } from '../utils/credits';
+import { CreateResumeDTO, UpdateResumeDTO } from './dto/resumev2.dto';
 import { ResumeService } from './resume.service';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { ResumeServiceV2 } from './resumev2.service';
 
 @ApiBearerAuth()
 @ApiTags('Resume')
@@ -141,79 +134,23 @@ export default class ResumeControllerV2 {
     }
   }
 
-  @Post('upload')
   @UseGuards(ClerkAuthGuard)
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadResume(
-    @GetUser() user: User,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 50000000 }),
-          new FileTypeValidator({
-            fileType: 'application/pdf',
-          }),
-        ],
-      }),
-    )
-    file: Express.Multer.File,
-  ) {
-    try {
-      if (!file) {
-        throw new BadRequestException('No file uploaded');
-      }
-
-      const userId = user.id || 'GUEST_USER';
-
-      return this.legacyResumeService.uploadResume(userId, file);
-    } catch (err) {
-      if (err instanceof BadRequestException) throw err;
-      throw new InternalServerErrorException('Failed to upload resume');
-    }
-  }
-
-  @Post('uploadNoLogin')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadResumeWithoutLogin(
-    @GetUser() user: User,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 50000000 }),
-          new FileTypeValidator({
-            fileType:
-              /(application\/pdf|application\/vnd.openxmlformats-officedocument.wordprocessingml.document)/,
-          }),
-        ],
-      }),
-    )
-    file: Express.Multer.File,
-  ) {
-    try {
-      if (!file) {
-        throw new BadRequestException('No file uploaded');
-      }
-
-      const userId = 'GUEST_USER';
-
-      return this.legacyResumeService.uploadResume(userId, file);
-    } catch (err) {
-      if (err instanceof BadRequestException) throw err;
-      throw new InternalServerErrorException('Failed to upload resume');
-    }
-  }
-
-  @UseGuards(ClerkAuthGuard)
-  @Get('suggestDomains/:upload_id')
-  async suggestDomains(@Param('upload_id') upload_id: string) {
-    return this.legacyResumeService.suggestDomains(upload_id);
-  }
-
-  @Get('analyse/:upload_id')
-  async suggestions(
+  @Post('domainSpecific/:upload_id')
+  async domainSpecific(
     @Param('upload_id') upload_id: string,
-    @Query('isFree') isFree: string,
+    @Body('domains') domains: string[],
+    @GetUser() user: User,
   ) {
-    return this.legacyResumeService.generateAnalyses(upload_id, isFree);
+    try {
+      const hasEnoughCredits = await hasCredits(user.id, 30 * domains.length);
+      if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
+      return this.resumeService.generateDomainSpecific(upload_id, domains);
+    } catch (err) {
+      throw err;
+    }
   }
+
+  @UseGuards(ClerkAuthGuard)
+  @Post('write-with-ai')
+  async writeWithAI() {}
 }

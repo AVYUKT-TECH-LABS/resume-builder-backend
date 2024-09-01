@@ -266,7 +266,31 @@ export class ResumeService {
     return 'ok';
   }
 
-  async generateAnalyses(upload_id: string, isFree: string) {
+  async generateDomainSpecificV2(upload_id: string, domains: string[]) {
+    const uploaded = await this.uploadModel.findById(upload_id, {
+      rawContent: 1,
+      userId: 1,
+    });
+
+    const promises = domains.map(async (domain) => {
+      const resume = (await this.openai.resumeForDomain(
+        uploaded.rawContent,
+        domain,
+      )) as ResumeType;
+
+      const created = await this.createFromData(
+        uploaded.userId,
+        resume,
+        `${domain} resume`,
+      );
+      return created;
+    });
+
+    await Promise.all(promises);
+    return 'ok';
+  }
+
+  async generateAnalyses(upload_id: string, isFree: boolean) {
     const uploaded = await this.uploadModel.findById(upload_id, {
       rawContent: 1,
       userId: 1,

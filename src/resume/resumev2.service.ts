@@ -5,12 +5,16 @@ import { Model, Types } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
 import { CreateResumeDTO, UpdateResumeDTO } from './dto/resumev2.dto';
 import { deductCredits } from '../utils/credits';
+import { Upload } from '../schemas/upload.schema';
+import { OpenAiService } from '../openai/openai.service';
 
 @Injectable()
 export class ResumeServiceV2 {
   constructor(
     @InjectModel(ResumeV2.name) private resumeModel: Model<ResumeV2>,
+    @InjectModel(Upload.name) private uploadModel: Model<Upload>,
     private config: ConfigService,
+    private openai: OpenAiService,
   ) {}
 
   async get(resumeId: string, userId: string) {
@@ -111,5 +115,64 @@ export class ResumeServiceV2 {
     } catch (error) {
       throw error;
     }
+  }
+
+  async generateDomainSpecific(upload_id: string, domains: string[]) {
+    const uploaded = await this.uploadModel.findById(upload_id, {
+      rawContent: 1,
+      userId: 1,
+    });
+
+    const defaults = {
+      pageConfig: {
+        size: 'A4',
+        background: null,
+        margin: 6,
+        spacing: 0,
+        font: {
+          fontFamily:
+            '__Playfair_Display_e3a538, __Playfair_Display_Fallback_e3a538',
+          fontStyle: 'normal',
+        },
+        fontSizes: {
+          heading: 0,
+          subHeading: 0,
+          content: 16,
+          lineHeight: 1.7,
+        },
+        colors: {
+          primary: '#296d98',
+          background: '#ffffff',
+          text: '#000000',
+        },
+        template: 'clarity',
+      },
+      picture: {
+        available: false,
+        enabled: true,
+        url: 'https://st3.depositphotos.com/9998432/13335/v/450/depositphotos_133352010-stock-illustration-default-placeholder-man-and-woman.jpg',
+        size: 120,
+        radius: 20,
+        border: false,
+        grayscale: false,
+      },
+    };
+
+    const promises = domains.map(async (domain) => {
+      const resume = await this.openai.resumeForDomain(
+        uploaded.rawContent,
+        domain,
+        'v2',
+      );
+
+      const created = await this.create(
+        { ...defaults, ...resume },
+        uploaded.userId,
+      );
+      return created;
+    });
+
+    await Promise.all(promises);
+    return 'ok';
   }
 }

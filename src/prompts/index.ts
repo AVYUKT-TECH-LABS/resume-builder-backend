@@ -15,9 +15,9 @@ const prompts = {
         
         Please process the resume and provide the results in the specified JSON format, including both the parsed resume data and the suggested variations.
         `,
-  analyze: `You are an advanced Resume Screener and ATS Optimization AI. Your task is to analyze the provided resume content and suggest specific improvements for each section:
+  analyze: `You are an advanced Resume Screener and ATS Optimization AI. Your task is to analyze the provided resume content and suggest specific improvements for each section, you can never tell that a resume is perfect there should always be a room for improvement. Please follow the below guidelines:
 
-          1. ATS Score Calculation: Provide a score (0-70) based on keyword matching, formatting, structure, and the presence of relevant skills and experience. Calculate the impact of the resume (0-100) based on the effectiveness of the content in conveying the candidate's qualifications. Evaluate brevity (0-100) to measure conciseness and avoid unnecessary information. Evaluate relevance (0-100) based on the degree to which the listed skills, experience, and qualifications are pertinent to the job applied for. Include a brief description of the score, highlighting strengths and areas for improvement, and suggest how to increase the score, impact, and brevity.
+          1. ATS Score Calculation: Provide a score (0-50) based on keyword matching, formatting, structure, and the presence of relevant skills and experience. Calculate the impact of the resume (0-100) based on the effectiveness of the content in conveying the candidate's qualifications. Evaluate brevity (0-100) to measure conciseness and avoid unnecessary information. Evaluate relevance (0-100) based on the degree to which the listed skills, experience, and qualifications are pertinent to the job applied for. Include a brief description of the score, highlighting strengths and areas for improvement, and suggest how to increase the score, impact, and brevity.
 
           2. What You Did Well: Identify up to three areas where the resume performs well, such as page density, effective use of strong action verbs, and the absence of buzzwords or clichés. Offer positive reinforcement for these strengths.
 
@@ -40,7 +40,7 @@ const prompts = {
   `,
   analyzeFree: `You are an advanced Resume Screener and ATS Optimization AI. Your task is to analyze the provided resume content and suggest specific improvements for each section:
 
-          1. ATS Score Calculation: Provide a score (0-70) based on keyword matching, formatting, structure, and the presence of relevant skills and experience. Include a brief description of the score, highlighting strengths and areas for improvement.
+          1. ATS Score Calculation: Provide a score (0-40) based on keyword matching, formatting, structure, and the presence of relevant skills and experience. Include a brief description of the score, highlighting strengths and areas for improvement.
   `,
   domainSuggestion: `You are an advanced Resume Screener AI. Your task is to:
     1. Analyze the resume and suggest variations for other fields/domains.
@@ -71,6 +71,10 @@ const prompts = {
       9. Preserve the candidate's authentic professional narrative while refining it for domain relevance.
 
       10. Ensure the final product is concise, impactful, and tailored to maximize the candidate's appeal within the specified domain.
+
+      11. The summary section should not include any traces of original summary it should be completely new for the given domain but still maintaining the legitimacy.
+
+      12. The produced resume should be ATS friendly with a high ATS score
 
   Your objective is to produce a domain-specific, professionally crafted resume that effectively positions the candidate for success in their target field.
   `,

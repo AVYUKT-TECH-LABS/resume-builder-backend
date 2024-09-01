@@ -86,10 +86,10 @@ const DomainSuggestions = z.object({
 
 const AnalyzeSchema = z.object({
   atsScore: z.object({
-    score: z.number(),
-    impact: z.number(),
-    brevity: z.number(),
-    relevance: z.number(),
+    score: z.number().describe('max allowed value for this is upto 50'),
+    impact: z.number().describe('max allowed value for this is upto 50'),
+    brevity: z.number().describe('max allowed value for this is upto 50'),
+    relevance: z.number().describe('max allowed value for this is upto 50'),
     description: z.string(),
   }),
   whatYouDidWell: z.array(
@@ -120,7 +120,9 @@ const AnalyzeSchema = z.object({
     resumeLength: z.enum(['Ideal', 'Too Short', 'Too Long']),
     missingSections: z.array(z.string()),
     duplicateContent: z.boolean(),
-    readabilityScore: z.number(),
+    readabilityScore: z
+      .number()
+      .describe('max allowed value for this is upto 50'),
     sectionRecommendations: z.array(z.string()),
     tailoringAdvice: z.array(z.string()),
   }),

@@ -1,7 +1,5 @@
-import { openai } from '@ai-sdk/openai';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { generateObject } from 'ai';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { ZodType, ZodTypeDef } from 'zod';
@@ -12,6 +10,7 @@ import {
   DomainSuggestions,
   ParsedResume,
 } from './response-schema';
+import { ParsedResumeV2 } from './response-schema/v2';
 
 @Injectable()
 export class OpenAiService {
@@ -99,7 +98,22 @@ export class OpenAiService {
     return output;
   }
 
-  async resumeForDomain(content: string, domain: string) {
+  async resumeForDomain(
+    content: string,
+    domain: string,
+    v: 'v1' | 'v2' = 'v1',
+  ) {
+    const formatter =
+      v == 'v1'
+        ? {
+            name: 'resume-variation',
+            schema: ParsedResume,
+          }
+        : {
+            name: 'resume-variation',
+            schema: ParsedResumeV2,
+          };
+
     const output = await this.generateResponse(
       prompts.variation,
       `
@@ -107,10 +121,7 @@ export class OpenAiService {
         
         required domain: ${domain}
       `,
-      {
-        name: 'resume-variation',
-        schema: ParsedResume,
-      },
+      formatter,
     );
 
     return output;
