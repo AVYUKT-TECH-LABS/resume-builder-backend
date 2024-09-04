@@ -8,11 +8,16 @@ import {
   Get,
   InternalServerErrorException,
   Logger,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
   Patch,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../decorators/user.decorator';
 import { ClerkAuthGuard } from '../guards/clerk.guard';
@@ -151,6 +156,39 @@ export default class ResumeControllerV2 {
   }
 
   @UseGuards(ClerkAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  @Post('picture/upload')
+  async uploadPicture(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new MaxFileSizeValidator({ maxSize: 50000000 })],
+      }),
+    )
+    file: Express.Multer.File,
+    @GetUser() user: User,
+  ) {
+    try {
+      const url = await this.resumeService.handlePictureUpload(user.id, file);
+
+      return url;
+    } catch (err) {
+      this.logger.error(err);
+      throw new InternalServerErrorException(
+        'Failed to upload image...Please try again',
+      );
+    }
+  }
+
+  @UseGuards(ClerkAuthGuard)
   @Post('write-with-ai')
-  async writeWithAI() {}
+  async writeWithAI(@Body() body: { content: string }) {
+    try {
+      const { content } = await this.resumeService.writeWithAI(body.content);
+      return content;
+    } catch (err) {
+      throw new InternalServerErrorException(
+        'Failed to improve text...please try again',
+      );
+    }
+  }
 }

@@ -7,6 +7,8 @@ import { CreateResumeDTO, UpdateResumeDTO } from './dto/resumev2.dto';
 import { deductCredits } from '../utils/credits';
 import { Upload } from '../schemas/upload.schema';
 import { OpenAiService } from '../openai/openai.service';
+import shortId from '../utils/shortid';
+import { CloudService } from '../cloud/cloud.service';
 
 @Injectable()
 export class ResumeServiceV2 {
@@ -15,6 +17,7 @@ export class ResumeServiceV2 {
     @InjectModel(Upload.name) private uploadModel: Model<Upload>,
     private config: ConfigService,
     private openai: OpenAiService,
+    private cloud: CloudService,
   ) {}
 
   async get(resumeId: string, userId: string) {
@@ -174,5 +177,25 @@ export class ResumeServiceV2 {
 
     await Promise.all(promises);
     return 'ok';
+  }
+
+  async handlePictureUpload(userId: string, file: Express.Multer.File) {
+    // Generate a short ID for the file name
+    const fileName = `${userId}-${shortId()}`;
+
+    // Get the storage service
+    const storage = this.cloud.getStorageService();
+
+    const url = await storage.uploadFile(
+      file,
+      fileName,
+      'txcl-resume-pictures',
+    );
+
+    return url;
+  }
+
+  async writeWithAI(content: string) {
+    return this.openai.improve(content);
   }
 }

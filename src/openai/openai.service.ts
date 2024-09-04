@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
-import { ZodType, ZodTypeDef } from 'zod';
+import { z, ZodType, ZodTypeDef } from 'zod';
 import prompts from '../prompts';
 import {
   AnalyzeSchema,
@@ -143,5 +143,18 @@ export class OpenAiService {
     });
 
     return output;
+  }
+
+  async improve(content: string) {
+    return this.generateResponse(
+      'Please improve the given content for a resume...only return the improved text and nothing else. The text should follow the General ATS Guidelines. Modify the content upto 75% but still keeping the original information intact. DO NOT ASSUME ANYTHING and only use the content provided',
+      content,
+      {
+        name: 'talent-ai',
+        schema: z.object({
+          content: z.string().describe('The improved content'),
+        }),
+      },
+    );
   }
 }
