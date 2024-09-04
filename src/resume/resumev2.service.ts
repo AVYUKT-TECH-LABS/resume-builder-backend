@@ -20,11 +20,12 @@ export class ResumeServiceV2 {
     private cloud: CloudService,
   ) {}
 
-  async get(resumeId: string, userId: string) {
+  async get(resumeId: string, userId?: string | undefined) {
     try {
+      console.log(resumeId, userId);
       const resume = await this.resumeModel.findOne({
         _id: resumeId,
-        userId,
+        ...(userId && { userId }),
       });
 
       if (!resume) throw new NotFoundException('Resume not found');

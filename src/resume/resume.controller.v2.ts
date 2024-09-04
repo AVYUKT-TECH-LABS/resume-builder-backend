@@ -54,6 +54,20 @@ export default class ResumeControllerV2 {
     }
   }
 
+  @Get('print/:resumeId')
+  async printableResume(@Param('resumeId') resumeId: string) {
+    try {
+      const resume = await this.resumeService.get(resumeId);
+      return resume;
+    } catch (err) {
+      this.logger.error(err);
+      if (err instanceof BadRequestException) throw err;
+      throw new InternalServerErrorException(
+        'Failed to get resume. Please try again!',
+      );
+    }
+  }
+
   @UseGuards(ClerkAuthGuard)
   @Get('read/:resumeId')
   async getResume(@Param('resumeId') resumeId: string, @GetUser() user: User) {
