@@ -86,6 +86,8 @@ export default class ResumeControllerV2 {
       response.end(pdf);
     } catch (err) {
       this.logger.error(err);
+      if (err instanceof BadRequestException) throw err;
+      if (err instanceof ForbiddenException) throw err;
       throw new InternalServerErrorException('Failed to download resume');
     }
   }
