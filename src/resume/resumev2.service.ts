@@ -9,6 +9,7 @@ import { Upload } from '../schemas/upload.schema';
 import { OpenAiService } from '../openai/openai.service';
 import shortId from '../utils/shortid';
 import { CloudService } from '../cloud/cloud.service';
+import puppeteer from 'puppeteer';
 
 @Injectable()
 export class ResumeServiceV2 {
@@ -198,5 +199,30 @@ export class ResumeServiceV2 {
 
   async writeWithAI(content: string) {
     return this.openai.improve(content);
+  }
+
+  async download(resumeId: string) {
+    console.log(puppeteer.executablePath());
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
+      executablePath: puppeteer.executablePath(),
+    });
+    const page = await browser.newPage();
+
+    // Navigate to the dedicated Next.js PDF page
+    const url = `${process.env.FRONTEND_URL}/pdf/${resumeId}`;
+    await page.goto(url, { waitUntil: 'networkidle0' });
+
+    // Generate the PDF
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      waitForFonts: true,
+    });
+
+    await browser.close();
+
+    return pdfBuffer;
   }
 }

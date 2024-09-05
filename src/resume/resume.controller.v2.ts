@@ -13,6 +13,7 @@ import {
   ParseFilePipe,
   Patch,
   Post,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -25,6 +26,7 @@ import { hasCredits } from '../utils/credits';
 import { CreateResumeDTO, UpdateResumeDTO } from './dto/resumev2.dto';
 import { ResumeService } from './resume.service';
 import { ResumeServiceV2 } from './resumev2.service';
+import { Response } from 'express';
 
 @ApiBearerAuth()
 @ApiTags('Resume')
@@ -65,6 +67,22 @@ export default class ResumeControllerV2 {
       throw new InternalServerErrorException(
         'Failed to get resume. Please try again!',
       );
+    }
+  }
+
+  @Post('download')
+  async download(
+    @Body() body: { resumeId: string },
+    @Res() response: Response,
+  ) {
+    try {
+      const pdf = await this.resumeService.download(body.resumeId);
+      response.setHeader('Content-Type', 'application/pdf');
+      response.setHeader('Content-Disposition', 'attachment');
+      response.end(pdf);
+    } catch (err) {
+      this.logger.error(err);
+      throw new InternalServerErrorException('Failed to download resume');
     }
   }
 
