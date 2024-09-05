@@ -23,7 +23,6 @@ export class ResumeServiceV2 {
 
   async get(resumeId: string, userId?: string | undefined) {
     try {
-      console.log(resumeId, userId);
       const resume = await this.resumeModel.findOne({
         _id: resumeId,
         ...(userId && { userId }),
@@ -72,8 +71,6 @@ export class ResumeServiceV2 {
         userId,
         ...data,
       });
-
-      if (newResume) await deductCredits(userId, 30);
 
       return newResume;
     } catch (err) {
@@ -201,8 +198,7 @@ export class ResumeServiceV2 {
     return this.openai.improve(content);
   }
 
-  async download(resumeId: string) {
-    console.log(puppeteer.executablePath());
+  async download(resumeId: string, userId: string) {
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
@@ -222,6 +218,8 @@ export class ResumeServiceV2 {
     });
 
     await browser.close();
+
+    if (pdfBuffer) await deductCredits(userId, 30);
 
     return pdfBuffer;
   }

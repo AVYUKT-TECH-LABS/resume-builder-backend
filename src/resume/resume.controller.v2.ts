@@ -70,13 +70,17 @@ export default class ResumeControllerV2 {
     }
   }
 
+  @UseGuards(ClerkAuthGuard)
   @Post('download')
   async download(
     @Body() body: { resumeId: string },
     @Res() response: Response,
+    @GetUser() user: User,
   ) {
     try {
-      const pdf = await this.resumeService.download(body.resumeId);
+      const hasEnoughCredits = await hasCredits(user.id, 30);
+      if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
+      const pdf = await this.resumeService.download(body.resumeId, user.id);
       response.setHeader('Content-Type', 'application/pdf');
       response.setHeader('Content-Disposition', 'attachment');
       response.end(pdf);
@@ -108,8 +112,6 @@ export default class ResumeControllerV2 {
     @Body() resumeData: CreateResumeDTO,
   ) {
     try {
-      const hasEnoughCredits = await hasCredits(user.id, 30);
-      if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
       const isCreated = await this.resumeService.create(resumeData, user.id);
 
       if (!isCreated) return 'Failed to save resume';
@@ -176,11 +178,10 @@ export default class ResumeControllerV2 {
   async domainSpecific(
     @Param('upload_id') upload_id: string,
     @Body('domains') domains: string[],
-    @GetUser() user: User,
   ) {
     try {
-      const hasEnoughCredits = await hasCredits(user.id, 30 * domains.length);
-      if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
+      // const hasEnoughCredits = await hasCredits(user.id, 30 * domains.length);
+      // if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
       return this.resumeService.generateDomainSpecific(upload_id, domains);
     } catch (err) {
       throw err;
