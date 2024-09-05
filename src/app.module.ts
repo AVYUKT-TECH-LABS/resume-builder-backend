@@ -7,6 +7,7 @@ import { CloudModule } from './cloud/cloud.module';
 import { OpenAIModule } from './openai/openai.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AppController } from './app.controller';
+import { JobsModule } from './jobs/jobs.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AppController } from './app.controller';
     CloudModule,
     OpenAIModule,
     PaymentsModule,
+    JobsModule,
   ],
   controllers: [AppController],
   providers: [],
