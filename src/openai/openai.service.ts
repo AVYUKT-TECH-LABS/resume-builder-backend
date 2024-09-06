@@ -66,7 +66,7 @@ export class OpenAiService {
         max_tokens:
           Number(this.config.get<number>('OPEN_AI_MAX_TOKENS')) || 2000,
         temperature:
-          Number(this.config.get<number>('OPEN_AI_TEMPERATURE')) || 0.5,
+          Number(this.config.get<number>('OPEN_AI_TEMPERATURE')) || 0.9,
         response_format: zodResponseFormat(formatter.schema, formatter.name),
       });
 
@@ -155,7 +155,7 @@ export class OpenAiService {
 
   async improve(content: string) {
     return this.generateResponse(
-      'Please improve the given content for a resume...only return the improved text and nothing else. The text should follow the General ATS Guidelines. Modify the content upto 75% but still keeping the original information intact. DO NOT ASSUME ANYTHING and only use the content provided',
+      'Please improve the given content for a resume, if you think the given content is not something from a resume then dont do anything...only return the improved text and nothing else. The text should follow the General ATS Guidelines. Modify the content upto 75% but still keeping the original information intact. DO NOT ASSUME ANYTHING and only use the content provided. The new content must be completely differ from the previous one but it should also maintain the context and important information. Be as creative as you can. Give your best work',
       content,
       {
         name: 'talent-ai',
