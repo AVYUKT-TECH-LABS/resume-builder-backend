@@ -11,6 +11,7 @@ import {
   ParsedResume,
 } from './response-schema';
 import { ParsedResumeV2 } from './response-schema/v2';
+import { LinkedinSchema } from './response-schema/linkedin-optimizer';
 
 @Injectable()
 export class OpenAiService {
@@ -143,6 +144,13 @@ export class OpenAiService {
     });
 
     return output;
+  }
+
+  async optimizeLinkedIn(content: string) {
+    return this.generateResponse(prompts.optimizeLinkedIn, content, {
+      name: 'linkedin-optimizer',
+      schema: LinkedinSchema,
+    });
   }
 
   async improve(content: string) {

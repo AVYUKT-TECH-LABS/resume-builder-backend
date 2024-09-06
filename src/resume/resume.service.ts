@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
@@ -8,7 +12,7 @@ import { OpenAiService } from '../openai/openai.service';
 import { Resume } from '../schemas/resume.schema';
 import { Upload } from '../schemas/upload.schema';
 import { Resume as ResumeType } from '../types/index';
-import { deductCredits } from '../utils/credits';
+import { deductCredits, hasCredits } from '../utils/credits';
 import shortId from '../utils/shortid';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 
@@ -236,9 +240,15 @@ export class ResumeService {
   async suggestDomains(uploadId: string) {
     const uploaded = await this.uploadModel.findById(uploadId, {
       rawContent: 1,
+      processedContent: 1,
     });
 
+    if (uploaded.processedContent) return JSON.parse(uploaded.processedContent);
+
     const suggestions = await this.openai.suggestDomains(uploaded.rawContent);
+    await uploaded.updateOne({
+      processedContent: JSON.stringify(suggestions),
+    });
     return suggestions;
   }
 
@@ -294,13 +304,24 @@ export class ResumeService {
     const uploaded = await this.uploadModel.findById(upload_id, {
       rawContent: 1,
       userId: 1,
+      processedContent: 1,
     });
+
+    if (uploaded.processedContent) return JSON.parse(uploaded.processedContent);
+
+    if (Boolean(!isFree)) {
+      const hasEnoughCredits = await hasCredits(uploaded.userId, 50);
+      if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
+    }
 
     const result = await this.openai.analyse(
       uploaded.rawContent,
       Boolean(isFree),
     );
     if (!Boolean(isFree)) await deductCredits(uploaded.userId, 50);
+    await uploaded.updateOne({
+      processedContent: JSON.stringify(result),
+    });
     return result;
   }
 
