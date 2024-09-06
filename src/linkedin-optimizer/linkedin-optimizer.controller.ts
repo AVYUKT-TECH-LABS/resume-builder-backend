@@ -2,6 +2,7 @@ import { User } from '@clerk/clerk-sdk-node';
 import {
   BadRequestException,
   Controller,
+  ForbiddenException,
   Get,
   InternalServerErrorException,
   Logger,
@@ -12,6 +13,7 @@ import {
 import { GetUser } from '../decorators/user.decorator';
 import { ClerkAuthGuard } from '../guards/clerk.guard';
 import { LinkedinOptimizerService } from './linkedin-optimizer.service';
+import { hasCredits } from '../utils/credits';
 
 @Controller('linkedin-optimizer')
 export class LinkedinOptimizerController {
@@ -27,6 +29,8 @@ export class LinkedinOptimizerController {
     @GetUser() user: User,
   ) {
     try {
+      const hasEnoughCredits = await hasCredits(user.id, 50);
+      if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
       const scanResults = await this.linkedinOptimizerService.scan(
         uploadId,
         user.id,
@@ -37,7 +41,8 @@ export class LinkedinOptimizerController {
       this.logger.error(err);
       if (
         err instanceof BadRequestException ||
-        err instanceof NotFoundException
+        err instanceof NotFoundException ||
+        err instanceof ForbiddenException
       )
         throw err;
       throw new InternalServerErrorException(

@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Upload } from '../schemas/upload.schema';
 import { Model } from 'mongoose';
 import { OpenAiService } from '../openai/openai.service';
+import { deductCredits } from '../utils/credits';
 
 @Injectable()
 export class LinkedinOptimizerService {
@@ -31,7 +32,7 @@ export class LinkedinOptimizerService {
     if (uploaded.processedContent) return JSON.parse(uploaded.processedContent);
 
     const result = await this.openAi.optimizeLinkedIn(uploaded.rawContent);
-
+    await deductCredits(userId, 50);
     await uploaded.updateOne({
       processedContent: JSON.stringify(result),
     });
