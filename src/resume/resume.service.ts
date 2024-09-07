@@ -269,6 +269,7 @@ export class ResumeService {
         resume,
         `${domain} resume`,
       );
+
       return created;
     });
 
@@ -293,6 +294,7 @@ export class ResumeService {
         resume,
         `${domain} resume`,
       );
+
       return created;
     });
 

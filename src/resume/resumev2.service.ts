@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { ResumeV2 } from '../schemas/resume.schema.v2';
-import { Model, Types } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
-import { CreateResumeDTO, UpdateResumeDTO } from './dto/resumev2.dto';
-import { deductCredits } from '../utils/credits';
-import { Upload } from '../schemas/upload.schema';
-import { OpenAiService } from '../openai/openai.service';
-import shortId from '../utils/shortid';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
 import { CloudService } from '../cloud/cloud.service';
-import puppeteer from 'puppeteer';
+import { OpenAiService } from '../openai/openai.service';
+import _puppeteer from '../puppeteer';
+import { ResumeV2 } from '../schemas/resume.schema.v2';
+import { Upload } from '../schemas/upload.schema';
+import { deductCredits } from '../utils/credits';
+import shortId from '../utils/shortid';
+import { CreateResumeDTO, UpdateResumeDTO } from './dto/resumev2.dto';
 
 @Injectable()
 export class ResumeServiceV2 {
@@ -171,6 +171,9 @@ export class ResumeServiceV2 {
         { ...defaults, ...resume },
         uploaded.userId,
       );
+
+      await this.createPreview(created._id as unknown as string);
+
       return created;
     });
 
@@ -199,11 +202,7 @@ export class ResumeServiceV2 {
   }
 
   async download(resumeId: string, userId: string) {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
-      executablePath: puppeteer.executablePath(),
-    });
+    const browser = await _puppeteer();
     const page = await browser.newPage();
 
     // Navigate to the dedicated Next.js PDF page
@@ -217,10 +216,75 @@ export class ResumeServiceV2 {
       waitForFonts: true,
     });
 
-    await browser.close();
+    await page.close();
 
     if (pdfBuffer) await deductCredits(userId, 30);
 
     return pdfBuffer;
+  }
+
+  async createPreview(resumeId: string) {
+    const browser = await _puppeteer();
+    const page = await browser.newPage();
+
+    // Navigate to the dedicated Next.js PDF page
+    const url = `${process.env.FRONTEND_URL}/pdf/${resumeId}`;
+
+    try {
+      await page.setViewport({
+        width: 794,
+        height: 1080,
+        deviceScaleFactor: 1,
+      });
+      await page.goto(url, { waitUntil: 'networkidle0' });
+      // Take the screenshot as a buffer instead of saving it locally
+      const screenshotBuffer = await page.screenshot({ type: 'png' });
+      const buffer = Buffer.from(screenshotBuffer);
+
+      // Upload the screenshot buffer directly to S3
+      const file: Express.Multer.File = {
+        buffer: buffer,
+        originalname: `${resumeId}.png`, // You can modify the filename as needed
+        mimetype: 'image/png',
+        size: screenshotBuffer.length,
+        fieldname: 'file',
+        encoding: '7bit',
+        destination: '',
+        filename: '',
+        path: '',
+        stream: null as any,
+      };
+
+      const cloud = this.cloud.getStorageService();
+      await cloud.uploadFile(file, `${resumeId}.png`, 'txcl-resume-previews');
+      await page.close();
+      return;
+    } catch (error) {
+      console.error('An error occurred:', error);
+      return;
+    }
+  }
+
+  async updatePreviews() {
+    try {
+      // Fetch all resume IDs
+      const resumes = await this.resumeModel.find({}, { _id: 1 });
+
+      if (!resumes || resumes.length === 0) {
+        throw new NotFoundException('Resumes not found');
+      }
+
+      // Create an array of promises to generate previews concurrently
+      resumes.map(
+        async (resume: any) => await this.createPreview(resume._id.toString()),
+      );
+
+      // Use Promise.all to run all createPreview functions in parallel
+      // await Promise.all(createPreviewsPromises);
+      return 'All previews generated successfully';
+    } catch (err) {
+      console.error('An error occurred while updating previews:', err);
+      throw err;
+    }
   }
 }

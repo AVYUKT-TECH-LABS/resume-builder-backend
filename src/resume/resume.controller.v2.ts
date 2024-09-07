@@ -41,6 +41,11 @@ export default class ResumeControllerV2 {
     private legacyResumeService: ResumeService,
   ) {}
 
+  // @Get()
+  // async update() {
+  //   return this.resumeService.updatePreviews();
+  // }
+
   @UseGuards(ClerkAuthGuard)
   @Get('list')
   async allResumes(@GetUser() user: User) {
@@ -150,6 +155,8 @@ export default class ResumeControllerV2 {
 
       if (!isUpdated) return 'Failed to save resume';
 
+      this.resumeService.createPreview(resumeId);
+
       return 'Resume Saved';
     } catch (err) {
       this.logger.error(err);
@@ -224,6 +231,47 @@ export default class ResumeControllerV2 {
       throw new InternalServerErrorException(
         'Failed to improve text...please try again',
       );
+    }
+  }
+
+  @Post('existing/upload')
+  @UseGuards(ClerkAuthGuard)
+  async uploadExistingResume(
+    @GetUser() user: User,
+    @Body() body: { resumeId: string },
+  ) {
+    try {
+      if (!body.resumeId) {
+        throw new BadRequestException('No resume selected');
+      }
+
+      const userId = user.id;
+      const pdfBuffer = await this.resumeService.download(
+        body.resumeId,
+        user.id,
+      );
+
+      // Convert Uint8Array to Buffer
+      const buffer = Buffer.from(pdfBuffer);
+
+      // Create a mock Express.Multer.File object from the buffer
+      const mockFile: Express.Multer.File = {
+        buffer: buffer,
+        originalname: `resume_${body.resumeId}.pdf`,
+        mimetype: 'application/pdf',
+        size: buffer.length,
+        fieldname: 'file',
+        encoding: '7bit',
+        destination: '',
+        filename: '',
+        path: '',
+        stream: null as any,
+      };
+
+      return this.legacyResumeService.uploadResume(userId, mockFile);
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new InternalServerErrorException('Failed to upload resume');
     }
   }
 }
