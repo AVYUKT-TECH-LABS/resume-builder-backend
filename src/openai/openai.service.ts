@@ -2,15 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
-import { ZodType, ZodTypeDef } from 'zod';
+import { z, ZodType, ZodTypeDef } from 'zod';
 import prompts from '../prompts';
 import {
   AnalyzeSchema,
+  AnalyzeSchemaFree,
   DomainSuggestions,
   ParsedResume,
 } from './response-schema';
-import { generateObject } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { ParsedResumeV2 } from './response-schema/v2';
+import { LinkedinSchema } from './response-schema/linkedin-optimizer';
 
 @Injectable()
 export class OpenAiService {
@@ -65,7 +66,7 @@ export class OpenAiService {
         max_tokens:
           Number(this.config.get<number>('OPEN_AI_MAX_TOKENS')) || 2000,
         temperature:
-          Number(this.config.get<number>('OPEN_AI_TEMPERATURE')) || 0.5,
+          Number(this.config.get<number>('OPEN_AI_TEMPERATURE')) || 0.9,
         response_format: zodResponseFormat(formatter.schema, formatter.name),
       });
 
@@ -98,7 +99,22 @@ export class OpenAiService {
     return output;
   }
 
-  async resumeForDomain(content: string, domain: string) {
+  async resumeForDomain(
+    content: string,
+    domain: string,
+    v: 'v1' | 'v2' = 'v1',
+  ) {
+    const formatter =
+      v == 'v1'
+        ? {
+            name: 'resume-variation',
+            schema: ParsedResume,
+          }
+        : {
+            name: 'resume-variation',
+            schema: ParsedResumeV2,
+          };
+
     const output = await this.generateResponse(
       prompts.variation,
       `
@@ -106,21 +122,47 @@ export class OpenAiService {
         
         required domain: ${domain}
       `,
-      {
-        name: 'resume-variation',
-        schema: ParsedResume,
-      },
+      formatter,
     );
 
     return output;
   }
 
-  async analyse(content: string) {
+  async analyse(content: string, isFree = false) {
+    if (isFree) {
+      const output = await this.generateResponse(prompts.analyzeFree, content, {
+        name: 'resume-analyze',
+        schema: AnalyzeSchemaFree,
+      });
+
+      return output;
+    }
+
     const output = await this.generateResponse(prompts.analyze, content, {
       name: 'resume-analyze',
       schema: AnalyzeSchema,
     });
 
     return output;
+  }
+
+  async optimizeLinkedIn(content: string) {
+    return this.generateResponse(prompts.optimizeLinkedIn, content, {
+      name: 'linkedin-optimizer',
+      schema: LinkedinSchema,
+    });
+  }
+
+  async improve(content: string) {
+    return this.generateResponse(
+      'Please improve the given content for a resume, if you think the given content is not something from a resume then dont do anything...only return the improved text and nothing else. The text should follow the General ATS Guidelines. Modify the content upto 75% but still keeping the original information intact. DO NOT ASSUME ANYTHING and only use the content provided. The new content must be completely differ from the previous one but it should also maintain the context and important information. Be as creative as you can. Give your best work',
+      content,
+      {
+        name: 'talent-ai',
+        schema: z.object({
+          content: z.string().describe('The improved content'),
+        }),
+      },
+    );
   }
 }

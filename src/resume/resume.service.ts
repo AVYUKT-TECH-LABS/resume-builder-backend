@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
@@ -8,6 +12,7 @@ import { OpenAiService } from '../openai/openai.service';
 import { Resume } from '../schemas/resume.schema';
 import { Upload } from '../schemas/upload.schema';
 import { Resume as ResumeType } from '../types/index';
+import { deductCredits, hasCredits } from '../utils/credits';
 import shortId from '../utils/shortid';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 
@@ -20,62 +25,71 @@ export class ResumeService {
     private openai: OpenAiService,
     private config: ConfigService,
   ) {}
-  create(userId: string) {
-    const createdResume = new this.resumeModel({
-      userId,
-      name: '',
-      page: {
-        size: 'A4',
-        background: null,
-        margins: 10,
-        spacing: 1,
-      },
-      template: 'ivy',
-      font: '',
-      color: '#000',
-      resume: {
-        id: 'resume-id',
-        contact: {
-          settings: [
-            {
-              key: 'showTitle',
-              name: 'Show Title',
-              value: true,
-            },
-            {
-              key: 'showPhone',
-              name: 'Show Phone',
-              value: true,
-            },
-            {
-              key: 'showLink',
-              name: 'Show Link',
-              value: true,
-            },
-            {
-              key: 'showEmail',
-              name: 'Show Email',
-              value: true,
-            },
-            {
-              key: 'showLocation',
-              name: 'Show Location',
-              value: true,
-            },
-          ],
-          data: {
-            name: '',
-            title: '',
-            phone: '',
-            link: '',
-            email: '',
-            location: '',
-          },
+
+  async create(userId: string) {
+    try {
+      const createdResume = new this.resumeModel({
+        userId,
+        name: '',
+        page: {
+          size: 'A4',
+          background: null,
+          margins: 10,
+          spacing: 1,
         },
-        sections: [],
-      },
-    });
-    return createdResume.save();
+        template: 'ivy',
+        font: '',
+        color: '#000',
+        resume: {
+          id: 'resume-id',
+          contact: {
+            settings: [
+              {
+                key: 'showTitle',
+                name: 'Show Title',
+                value: true,
+              },
+              {
+                key: 'showPhone',
+                name: 'Show Phone',
+                value: true,
+              },
+              {
+                key: 'showLink',
+                name: 'Show Link',
+                value: true,
+              },
+              {
+                key: 'showEmail',
+                name: 'Show Email',
+                value: true,
+              },
+              {
+                key: 'showLocation',
+                name: 'Show Location',
+                value: true,
+              },
+            ],
+            data: {
+              name: '',
+              title: '',
+              phone: '',
+              link: '',
+              email: '',
+              location: '',
+            },
+          },
+          sections: [],
+        },
+      });
+
+      const saved = createdResume.save();
+      await deductCredits(userId, 30);
+
+      return saved;
+    } catch (err) {
+      throw new InternalServerErrorException('Failed to create resume');
+    }
   }
 
   findAll(userId: string) {
@@ -85,7 +99,7 @@ export class ResumeService {
         {
           createdAt: 1,
           updatedAt: 1,
-          resume: 1,
+          'resume.contact.data.title': 1,
           name: 1,
           _id: 1,
         },
@@ -116,11 +130,13 @@ export class ResumeService {
     // return 'ok';
   }
 
-  remove(id: string) {
-    return this.resumeModel.deleteOne({ _id: id }).exec();
+  remove(id: string, userId: string) {
+    return this.resumeModel.deleteOne({ _id: id, userId }).exec();
   }
 
   async createFromData(userId: string, resumeData: ResumeType, name: string) {
+    await deductCredits(userId, 30);
+
     return this.resumeModel.create({
       userId,
       name,
@@ -224,10 +240,15 @@ export class ResumeService {
   async suggestDomains(uploadId: string) {
     const uploaded = await this.uploadModel.findById(uploadId, {
       rawContent: 1,
+      processedContent: 1,
     });
 
-    const suggestions = await this.openai.suggestDomains(uploaded.rawContent);
+    if (uploaded.processedContent) return JSON.parse(uploaded.processedContent);
 
+    const suggestions = await this.openai.suggestDomains(uploaded.rawContent);
+    await uploaded.updateOne({
+      processedContent: JSON.stringify(suggestions),
+    });
     return suggestions;
   }
 
@@ -243,21 +264,66 @@ export class ResumeService {
         domain,
       )) as ResumeType;
 
-      return this.createFromData(uploaded.userId, resume, `${domain} resume`);
+      const created = await this.createFromData(
+        uploaded.userId,
+        resume,
+        `${domain} resume`,
+      );
+
+      return created;
     });
 
     await Promise.all(promises);
     return 'ok';
   }
 
-  async generateAnalyses(upload_id: string) {
+  async generateDomainSpecificV2(upload_id: string, domains: string[]) {
     const uploaded = await this.uploadModel.findById(upload_id, {
       rawContent: 1,
       userId: 1,
     });
 
-    const result = await this.openai.analyse(uploaded.rawContent);
+    const promises = domains.map(async (domain) => {
+      const resume = (await this.openai.resumeForDomain(
+        uploaded.rawContent,
+        domain,
+      )) as ResumeType;
 
+      const created = await this.createFromData(
+        uploaded.userId,
+        resume,
+        `${domain} resume`,
+      );
+
+      return created;
+    });
+
+    await Promise.all(promises);
+    return 'ok';
+  }
+
+  async generateAnalyses(upload_id: string, isFree: boolean) {
+    const uploaded = await this.uploadModel.findById(upload_id, {
+      rawContent: 1,
+      userId: 1,
+      processedContent: 1,
+    });
+
+    if (uploaded.processedContent) return JSON.parse(uploaded.processedContent);
+
+    if (Boolean(!isFree)) {
+      const hasEnoughCredits = await hasCredits(uploaded.userId, 50);
+      if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
+    }
+
+    const result = await this.openai.analyse(
+      uploaded.rawContent,
+      Boolean(isFree),
+    );
+    if (!Boolean(isFree)) await deductCredits(uploaded.userId, 50);
+    await uploaded.updateOne({
+      processedContent: JSON.stringify(result),
+    });
     return result;
   }
 

@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { VersioningType } from '@nestjs/common';
+import _puppeteer from './puppeteer';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -40,6 +42,11 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
+  });
+
   app.use(cookieParser());
 
   const config = new DocumentBuilder()
@@ -53,6 +60,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   const port = process.env.PORT || 3000;
+  await _puppeteer();
   await app.listen(port);
 }
 

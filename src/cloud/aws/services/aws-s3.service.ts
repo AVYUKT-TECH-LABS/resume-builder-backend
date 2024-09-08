@@ -20,9 +20,10 @@ export class AwsS3Service implements IStorageService {
   async uploadFile(
     file: Express.Multer.File,
     filename: string,
+    bucket?: string,
   ): Promise<string> {
     const params = {
-      Bucket: this.bucket,
+      Bucket: bucket || this.bucket,
       Key: filename,
       Body: file.buffer,
       ContentType: file.mimetype,
