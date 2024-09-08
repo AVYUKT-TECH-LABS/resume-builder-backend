@@ -1,6 +1,28 @@
 import { z } from 'zod';
 
 export const LinkedinSchema = z.object({
+  raw: z
+    .object({
+      fullName: z.string(),
+      location: z.string(),
+      experiences: z.array(
+        z.object({
+          title: z.string(),
+          company_name: z.string(),
+          startEnd: z.string().describe('eg: Jun 2024 - Present'),
+        }),
+      ),
+      education: z.array(
+        z.object({
+          institute: z.string(),
+          degree: z.string(),
+          startEnd: z.string().describe('eg: Jun 2024 - Present'),
+        }),
+      ),
+    })
+    .describe(
+      'The actual content present in the profile no assumptions no fixes... everything original',
+    ),
   percentageScore: z
     .number()
     .describe('An overall profile strength score (0-100%)'),

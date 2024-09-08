@@ -19,7 +19,7 @@ export class ResumeServiceV2 {
     private config: ConfigService,
     private openai: OpenAiService,
     private cloud: CloudService,
-  ) {}
+  ) { }
 
   async get(resumeId: string, userId?: string | undefined) {
     try {
@@ -202,6 +202,7 @@ export class ResumeServiceV2 {
   }
 
   async download(resumeId: string, userId: string) {
+    const resume = await this.get(resumeId, userId)
     const browser = await _puppeteer();
     const page = await browser.newPage();
 
@@ -209,11 +210,32 @@ export class ResumeServiceV2 {
     const url = `${process.env.FRONTEND_URL}/pdf/${resumeId}`;
     await page.goto(url, { waitUntil: 'networkidle0' });
 
+    const customCSS = `
+    <style>
+      @page {
+        margin-top: 2in;
+        margin-bottom: 2in;
+      }
+
+      @page :first {
+        margin-top: 0;
+        margin-bottom:1in;
+      }
+    </style>
+  `;
+
+    await page.addStyleTag({ content: customCSS });
+
+
     // Generate the PDF
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
       waitForFonts: true,
+      preferCSSPageSize: true,
+      // margin: {
+      //   bottom: '1in',
+      // }
     });
 
     await page.close();
