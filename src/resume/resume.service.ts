@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
@@ -8,7 +12,7 @@ import { OpenAiService } from '../openai/openai.service';
 import { Resume } from '../schemas/resume.schema';
 import { Upload } from '../schemas/upload.schema';
 import { Resume as ResumeType } from '../types/index';
-import { deductCredits } from '../utils/credits';
+import { deductCredits, hasCredits } from '../utils/credits';
 import shortId from '../utils/shortid';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 
@@ -236,10 +240,15 @@ export class ResumeService {
   async suggestDomains(uploadId: string) {
     const uploaded = await this.uploadModel.findById(uploadId, {
       rawContent: 1,
+      processedContent: 1,
     });
 
-    const suggestions = await this.openai.suggestDomains(uploaded.rawContent);
+    if (uploaded.processedContent) return JSON.parse(uploaded.processedContent);
 
+    const suggestions = await this.openai.suggestDomains(uploaded.rawContent);
+    await uploaded.updateOne({
+      processedContent: JSON.stringify(suggestions),
+    });
     return suggestions;
   }
 
@@ -260,6 +269,7 @@ export class ResumeService {
         resume,
         `${domain} resume`,
       );
+
       return created;
     });
 
@@ -267,24 +277,53 @@ export class ResumeService {
     return 'ok';
   }
 
-  async generateAnalyses(upload_id: string, isFree: string) {
-    if (isFree === 'true') {
-      const uploaded = await this.uploadModel.findById(upload_id, {
-        rawContent: 1,
-        userId: 1,
-      });
-
-      const result = await this.openai.analyse(uploaded.rawContent, true);
-      return result;
-    }
-
+  async generateDomainSpecificV2(upload_id: string, domains: string[]) {
     const uploaded = await this.uploadModel.findById(upload_id, {
       rawContent: 1,
       userId: 1,
     });
 
-    const result = await this.openai.analyse(uploaded.rawContent);
-    await deductCredits(uploaded.userId, 50);
+    const promises = domains.map(async (domain) => {
+      const resume = (await this.openai.resumeForDomain(
+        uploaded.rawContent,
+        domain,
+      )) as ResumeType;
+
+      const created = await this.createFromData(
+        uploaded.userId,
+        resume,
+        `${domain} resume`,
+      );
+
+      return created;
+    });
+
+    await Promise.all(promises);
+    return 'ok';
+  }
+
+  async generateAnalyses(upload_id: string, isFree: boolean) {
+    const uploaded = await this.uploadModel.findById(upload_id, {
+      rawContent: 1,
+      userId: 1,
+      processedContent: 1,
+    });
+
+    if (uploaded.processedContent) return JSON.parse(uploaded.processedContent);
+
+    if (Boolean(!isFree)) {
+      const hasEnoughCredits = await hasCredits(uploaded.userId, 50);
+      if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
+    }
+
+    const result = await this.openai.analyse(
+      uploaded.rawContent,
+      Boolean(isFree),
+    );
+    if (!Boolean(isFree)) await deductCredits(uploaded.userId, 50);
+    await uploaded.updateOne({
+      processedContent: JSON.stringify(result),
+    });
     return result;
   }
 

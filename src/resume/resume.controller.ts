@@ -299,7 +299,10 @@ export class ResumeController {
     @Param('upload_id') upload_id: string,
     @Query('isFree') isFree: string,
   ) {
-    return this.resumeService.generateAnalyses(upload_id, isFree);
+    return this.resumeService.generateAnalyses(
+      upload_id,
+      isFree == 'false' ? false : true,
+    );
   }
 
   @Get('getPdf/:upload_id')

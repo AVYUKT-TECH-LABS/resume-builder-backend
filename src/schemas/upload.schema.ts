@@ -16,6 +16,9 @@ export class Upload {
 
   @Prop()
   rawContent: string;
+
+  @Prop()
+  processedContent: string;
 }
 
 export const UploadSchema = SchemaFactory.createForClass(Upload);
