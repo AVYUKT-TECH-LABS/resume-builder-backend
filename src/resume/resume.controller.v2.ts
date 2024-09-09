@@ -39,7 +39,7 @@ export default class ResumeControllerV2 {
   constructor(
     private resumeService: ResumeServiceV2,
     private legacyResumeService: ResumeService,
-  ) {}
+  ) { }
 
   // @Get()
   // async update() {
@@ -249,6 +249,7 @@ export default class ResumeControllerV2 {
       const pdfBuffer = await this.resumeService.download(
         body.resumeId,
         user.id,
+        true
       );
 
       // Convert Uint8Array to Buffer

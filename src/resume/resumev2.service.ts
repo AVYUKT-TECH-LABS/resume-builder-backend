@@ -201,8 +201,8 @@ export class ResumeServiceV2 {
     return this.openai.improve(content);
   }
 
-  async download(resumeId: string, userId: string) {
-    const resume = await this.get(resumeId, userId)
+  async download(resumeId: string, userId: string, existing: boolean = false) {
+    // const resume = await this.get(resumeId, userId)
     const browser = await _puppeteer();
     const page = await browser.newPage();
 
@@ -213,8 +213,8 @@ export class ResumeServiceV2 {
     const customCSS = `
     <style>
       @page {
-        margin-top: 2in;
-        margin-bottom: 2in;
+        margin-top: 1in;
+        margin-bottom: 1in;
       }
 
       @page :first {
@@ -240,7 +240,7 @@ export class ResumeServiceV2 {
 
     await page.close();
 
-    if (pdfBuffer) await deductCredits(userId, 30);
+    if (pdfBuffer && !existing) await deductCredits(userId, 30);
 
     return pdfBuffer;
   }
