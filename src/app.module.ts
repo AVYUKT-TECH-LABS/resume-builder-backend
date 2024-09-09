@@ -9,6 +9,8 @@ import { PaymentsModule } from './payments/payments.module';
 import { AppController } from './app.controller';
 import { JobsModule } from './jobs/jobs.module';
 import { LinkedinOptimizerModule } from './linkedin-optimizer/linkedin-optimizer.module';
+import { NotificationService } from './notification/notification.service';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -25,9 +27,10 @@ import { LinkedinOptimizerModule } from './linkedin-optimizer/linkedin-optimizer
     PaymentsModule,
     JobsModule,
     LinkedinOptimizerModule,
+    NotificationModule,
   ],
   controllers: [AppController],
-  providers: [],
+  providers: [NotificationService],
 })
 export class AppModule {}
 // export class AppModule implements NestModule {
