@@ -9,6 +9,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { AppController } from './app.controller';
 import { JobsModule } from './jobs/jobs.module';
 import { LinkedinOptimizerModule } from './linkedin-optimizer/linkedin-optimizer.module';
+import { IpInfoModule } from './ip-info/ip-info.module';
 
 @Module({
   imports: [
@@ -25,9 +26,9 @@ import { LinkedinOptimizerModule } from './linkedin-optimizer/linkedin-optimizer
     PaymentsModule,
     JobsModule,
     LinkedinOptimizerModule,
+    IpInfoModule,
   ],
   controllers: [AppController],
-  providers: [],
 })
 export class AppModule {}
 // export class AppModule implements NestModule {
