@@ -180,7 +180,7 @@ export class IpInfoService {
     try {
       const ipInfo = await this.getInfo(ipAddr);
 
-      const currencyCode = 'USD'; //ipInfo.countryCurrency.code;
+      const currencyCode = ipInfo.countryCurrency.code;
 
       const exchangeRate = await this.getExchangeRate(
         baseCurrency,
