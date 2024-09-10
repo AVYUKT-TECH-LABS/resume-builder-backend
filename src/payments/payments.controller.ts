@@ -51,6 +51,11 @@ export class PaymentsController {
     }
   }
 
+  @Get('plans')
+  async getPlans(@RealIp() ip: string) {
+    return this.paymentService.getPlans(ip);
+  }
+
   @Post('webhook/razorpay')
   async handleRazorpayWebhook(
     @Body() payload: any,

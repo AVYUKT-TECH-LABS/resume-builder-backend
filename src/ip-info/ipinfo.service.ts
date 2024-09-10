@@ -156,7 +156,7 @@ export class IpInfoService {
     }
   }
 
-  private async getExchangeRate(
+  async getExchangeRate(
     baseCurrency: string,
     currency: string,
   ): Promise<number> {
@@ -178,7 +178,11 @@ export class IpInfoService {
     ipAddr: string,
   ) {
     try {
-      const ipInfo = await this.getInfo(ipAddr);
+      const ip =
+        this.config.get('NODE_ENV') == 'development'
+          ? this.config.get('DEV_IP') || ipAddr
+          : ipAddr;
+      const ipInfo = await this.getInfo(ip);
 
       const currencyCode = ipInfo.countryCurrency.code;
 
@@ -192,10 +196,12 @@ export class IpInfoService {
       const adjustedPrice = Math.floor(
         basePrice * Math.pow(10, exponent) * exchangeRate,
       );
+
       return {
-        currency: currencyCode,
+        currency: ipInfo.countryCurrency,
         country: ipInfo.country,
         adjustedPrice,
+        exponent,
       };
     } catch (err) {
       this.logger.log(err);

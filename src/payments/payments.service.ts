@@ -24,6 +24,29 @@ export class PaymentsService {
     });
   }
 
+  async getPlans(ipAddr: string) {
+    const plans = await this.planModel.find({
+      isActive: true,
+    });
+
+    const regionalPlans = await Promise.all(
+      plans.map(async (plan) => {
+        const details = await this.ipInfo.getRegionalPricing(
+          plan.amount / 100,
+          'INR',
+          ipAddr,
+        );
+        return {
+          ...plan.toObject(), // Convert Mongoose document to a plain JavaScript object
+          amount: details.adjustedPrice,
+          display_amount: `${details.currency.symbol}${details.adjustedPrice / Math.pow(10, details.exponent)}`,
+        };
+      }),
+    );
+
+    return regionalPlans;
+  }
+
   async createOrder(planName: string, userId: string, ip: string) {
     const [plan, user] = await Promise.all([
       this.getPlan(planName),
@@ -51,7 +74,7 @@ export class PaymentsService {
 
     const rzpOrder = await this.razorpay.orders.create({
       amount: adjustedOrderDetails.adjustedPrice,
-      currency: adjustedOrderDetails.currency,
+      currency: adjustedOrderDetails.currency.code,
       notes: {
         env: this.configService.get<string>('NODE_ENV'),
       },
