@@ -15,6 +15,7 @@ import { GetUser } from '../decorators/user.decorator';
 import { ClerkAuthGuard } from '../guards/clerk.guard';
 import { User } from '../interfaces/user.interface';
 import { PaymentsService } from './payments.service';
+import { RealIp } from 'nestjs-real-ip';
 
 @Controller('payments')
 export class PaymentsController {
@@ -23,9 +24,18 @@ export class PaymentsController {
 
   @UseGuards(ClerkAuthGuard)
   @Post('/order/create')
-  async createOrder(@GetUser() user: User, @Body('plan') plan: string) {
+  async createOrder(
+    @GetUser() user: User,
+    @Body('plan') plan_id: string,
+    @RealIp() ip: string,
+  ) {
     try {
-      const order = await this.paymentService.createOrder(plan, user.id);
+      if (!ip) {
+        this.logger.log(`Failed to determine ip for user ${user.id}`);
+        throw new BadRequestException('Failed to create order');
+      }
+
+      const order = await this.paymentService.createOrder(plan_id, user.id, ip);
       return {
         code: 200,
         message: 'Order created',
@@ -39,6 +49,11 @@ export class PaymentsController {
         message: 'Internal server error',
       });
     }
+  }
+
+  @Get('plans')
+  async getPlans(@RealIp() ip: string) {
+    return this.paymentService.getPlans(ip);
   }
 
   @Post('webhook/razorpay')

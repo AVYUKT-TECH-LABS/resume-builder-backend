@@ -7,12 +7,14 @@ import { Plan } from '../schemas/plan.schema';
 import { Model } from 'mongoose';
 import { Order } from '../schemas/order.schema';
 import * as crypto from 'crypto';
+import { IpInfoService } from '../ip-info/ipinfo.service';
 
 @Injectable()
 export class PaymentsService {
   private razorpay: Razorpay;
   constructor(
     private configService: ConfigService,
+    private ipInfo: IpInfoService,
     @InjectModel(Plan.name) private planModel: Model<Plan>,
     @InjectModel(Order.name) private orderModel: Model<Order>,
   ) {
@@ -22,7 +24,30 @@ export class PaymentsService {
     });
   }
 
-  async createOrder(planName: string, userId: string) {
+  async getPlans(ipAddr: string) {
+    const plans = await this.planModel.find({
+      isActive: true,
+    });
+
+    const regionalPlans = await Promise.all(
+      plans.map(async (plan) => {
+        const details = await this.ipInfo.getRegionalPricing(
+          plan.amount / 100,
+          'INR',
+          ipAddr,
+        );
+        return {
+          ...plan.toObject(), // Convert Mongoose document to a plain JavaScript object
+          amount: details.adjustedPrice,
+          display_amount: `${details.currency.symbol}${details.adjustedPrice / Math.pow(10, details.exponent)}`,
+        };
+      }),
+    );
+
+    return regionalPlans;
+  }
+
+  async createOrder(planName: string, userId: string, ip: string) {
     const [plan, user] = await Promise.all([
       this.getPlan(planName),
       clerkClient.users.getUser(userId),
@@ -40,9 +65,16 @@ export class PaymentsService {
         message: 'Plan not found',
       });
 
+    //Get amount and currency based on location
+    const adjustedOrderDetails = await this.ipInfo.getRegionalPricing(
+      plan.amount / 100,
+      'INR',
+      ip,
+    );
+
     const rzpOrder = await this.razorpay.orders.create({
-      amount: plan.amount,
-      currency: 'INR',
+      amount: adjustedOrderDetails.adjustedPrice,
+      currency: adjustedOrderDetails.currency.code,
       notes: {
         env: this.configService.get<string>('NODE_ENV'),
       },

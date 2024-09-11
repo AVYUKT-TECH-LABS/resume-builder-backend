@@ -11,6 +11,7 @@ import { JobsModule } from './jobs/jobs.module';
 import { LinkedinOptimizerModule } from './linkedin-optimizer/linkedin-optimizer.module';
 import { NotificationService } from './notification/notification.service';
 import { NotificationModule } from './notification/notification.module';
+import { IpInfoModule } from './ip-info/ip-info.module';
 
 @Module({
   imports: [
@@ -27,7 +28,6 @@ import { NotificationModule } from './notification/notification.module';
     PaymentsModule,
     JobsModule,
     LinkedinOptimizerModule,
-    NotificationModule,
   ],
   controllers: [AppController],
   providers: [NotificationService],
