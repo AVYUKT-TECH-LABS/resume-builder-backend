@@ -10,8 +10,8 @@ import {
   DomainSuggestions,
   ParsedResume,
 } from './response-schema';
-import { ParsedResumeV2 } from './response-schema/v2';
 import { LinkedinSchema } from './response-schema/linkedin-optimizer';
+import { ParsedResumeV2 } from './response-schema/v2';
 
 @Injectable()
 export class OpenAiService {
@@ -128,20 +128,36 @@ export class OpenAiService {
     return output;
   }
 
-  async analyse(content: string, isFree = false) {
+  async analyse(content: string, isFree = false, jd: string) {
     if (isFree) {
-      const output = await this.generateResponse(prompts.analyzeFree, content, {
-        name: 'resume-analyze',
-        schema: AnalyzeSchemaFree,
-      });
+      const output = await this.generateResponse(
+        prompts.analyzeFree,
+        `
+          content: ${content}
+
+          jd: ${jd}
+        `,
+        {
+          name: 'resume-analyze',
+          schema: AnalyzeSchemaFree,
+        },
+      );
 
       return output;
     }
 
-    const output = await this.generateResponse(prompts.analyze, content, {
-      name: 'resume-analyze',
-      schema: AnalyzeSchema,
-    });
+    const output = await this.generateResponse(
+      prompts.analyze,
+      `
+          content: ${content}
+
+          jd: ${jd}
+        `,
+      {
+        name: 'resume-analyze',
+        schema: AnalyzeSchema,
+      },
+    );
 
     return output;
   }
