@@ -294,14 +294,16 @@ export class ResumeController {
     }
   }
 
-  @Get('analyse/:upload_id')
+  @Post('analyse/:upload_id')
   async suggestions(
     @Param('upload_id') upload_id: string,
     @Query('isFree') isFree: string,
+    @Body() body: { jd: string },
   ) {
     return this.resumeService.generateAnalyses(
       upload_id,
       isFree == 'false' ? false : true,
+      body.jd,
     );
   }
 
