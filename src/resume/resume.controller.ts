@@ -109,7 +109,8 @@ export class ResumeController {
         validators: [
           new MaxFileSizeValidator({ maxSize: 50000000 }),
           new FileTypeValidator({
-            fileType: 'application/pdf',
+            fileType:
+              /(application\/pdf|application\/msword|application\/vnd.openxmlformats-officedocument.wordprocessingml.document)/,
           }),
         ],
       }),
@@ -169,8 +170,11 @@ export class ResumeController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 100000 }),
-          new FileTypeValidator({ fileType: 'application/pdf' }),
+          new MaxFileSizeValidator({ maxSize: 50000000 }),
+          new FileTypeValidator({
+            fileType:
+              /(application\/pdf|application\/msword|application\/vnd.openxmlformats-officedocument.wordprocessingml.document)/,
+          }),
         ],
       }),
     )
@@ -219,8 +223,11 @@ export class ResumeController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 100000 }),
-          new FileTypeValidator({ fileType: 'application/pdf' }),
+          new MaxFileSizeValidator({ maxSize: 50000000 }),
+          new FileTypeValidator({
+            fileType:
+              /(application\/pdf|application\/msword|application\/vnd.openxmlformats-officedocument.wordprocessingml.document)/,
+          }),
         ],
       }),
     )
