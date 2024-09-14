@@ -4,12 +4,8 @@ import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z, ZodType, ZodTypeDef } from 'zod';
 import prompts from '../prompts';
-import {
-  AnalyzeSchema,
-  AnalyzeSchemaFree,
-  DomainSuggestions,
-  ParsedResume,
-} from './response-schema';
+import { DomainSuggestions, ParsedResume } from './response-schema';
+import { AnalyzeSchema, AnalyzeSchemaFree } from './response-schema/ats';
 import { LinkedinSchema } from './response-schema/linkedin-optimizer';
 import { ParsedResumeV2 } from './response-schema/v2';
 

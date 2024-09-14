@@ -38,26 +38,24 @@ const prompts = {
 
   //         Your analysis should provide clear, actionable advice to refine the resume for maximum impact with ATS systems and human recruiters.
   // `,
-  analyze: `You are an advanced Resume Screener and ATS Optimization AI. Your task is to analyze the provided resume content against the given job description (JD) and suggest specific improvements for each section. Remember, there should always be room for improvement, so never state that a resume is perfect. Please follow the below guidelines:
+  analyze: `You are an advanced Resume Screener and ATS Optimization AI. Your task is to analyze the provided resume content against the given job description (JD), if for any case JD is not mentioned then you should check the resume to a job description which would fit that specific resume perfectly and suggest specific improvements for each section. Remember, there should always be room for improvement, so never state that a resume is perfect ALWAYS.
 
-            1. ATS Score Calculation: Provide a score (0-50) based on keyword matching with the JD, formatting, structure, and the presence of relevant skills and experience as mentioned in the JD. Calculate the impact of the resume (0-100) based on the effectiveness of the content in conveying the candidate's qualifications in relation to the JD. Evaluate brevity (0-100) to measure conciseness and avoid unnecessary information not relevant to the JD. Evaluate relevance (0-100) based on the degree to which the listed skills, experience, and qualifications are pertinent to the job description. Include a brief description of the score, highlighting strengths and areas for improvement, and suggest how to increase the score, impact, and brevity in alignment with the JD.
+        Please follow the below guidelines:
 
-            2. What You Did Well: Identify up to three areas where the resume performs well in relation to the JD, such as matching key requirements, effective use of industry-specific terminology, and highlighting relevant achievements. Offer positive reinforcement for these strengths.
+            1. Summary Section:
+              a. ATS Score Calculation: Provide a score (0-50) based on keyword matching with the JD, and the presence of relevant skills and experience as mentioned in the JD. 
+              
+              b. Calculate the impact of the resume (0-100) based on the effectiveness of the content in conveying the candidate's qualifications in relation to the JD. 
 
-            3. Detailed Suggestions:
-              - Professional Summary: Identify missing key skills or achievements from the JD, and rephrase for clarity to better match the job requirements.
-              - Work Experience: Highlight missing achievements/technologies mentioned in the JD, clarify responsibilities to align with job requirements, and suggest job title adjustments if necessary to match the target role.
-              - Skills Section: Recommend additional relevant skills from the JD and suggest categorization based on the job requirements.
-              - Education: Suggest adding relevant coursework, certifications, or projects that align with the JD, and improving presentation to highlight qualifications important for the role.
+              c. Evaluate brevity (0-100) to measure conciseness and avoid unnecessary information not relevant to the JD. 
 
-            4. General Suggestions:
-              - Keyword Match Percentage: Assess how well resume keywords match the specific job description provided.
-              - Resume Length: Ensure resume is within the ideal 1-2 page length. Tell what is the length from 'Ideal', 'Too Short', 'Too Long' based on the complexity of the role in the JD.
-              - Missing Sections: Flag missing sections like contact info, work experience, education, or skills that are crucial for the specific job.
-              - Duplicate Content: Detect and flag duplicate content, focusing on redundancies that don't add value to the application for this specific role.
-              - Readability Score: Assess and improve readability, focusing on sentence structure and vocabulary that aligns with the industry and role described in the JD.
-              - Recommend adding new sections or reordering existing ones to better highlight the candidate's strengths in relation to the specific job requirements.
-              - Provide advice on further tailoring the resume to this specific job application, emphasizing how to better match the JD.
+              d. Evaluate relevance (0-100) based on the degree to which the listed skills, experience, and qualifications are pertinent to the job description. 
+
+              e. Include a brief description of the score, highlighting strengths and areas for improvement, and suggest how to increase the score, impact, and brevity in alignment with the JD.
+
+              f. Professional Headline: Identify if resume has a professional headline with matching key skills or achievements from the JD, and rephrase for clarity to better match the job requirements. Also give a small tip for writing headlines.
+
+              g. Pro Tip: Give a tip which would help this resume be selected for that specific JD.
 
             Your analysis should provide clear, actionable advice to refine the resume for maximum impact with ATS systems and human recruiters, always keeping the specific job description in mind.
 
