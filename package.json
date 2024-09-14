@@ -37,6 +37,8 @@
     "cookie-parser": "^1.4.6",
     "mongoose": "^8.5.2",
     "multer": "^1.4.5-lts.1",
+    "nestjs-real-ip": "^3.0.1",
+    "node-ipinfo": "^3.5.3",
     "node-tika": "^0.0.1",
     "openai": "^4.56.0",
     "puppeteer": "^23.3.0",

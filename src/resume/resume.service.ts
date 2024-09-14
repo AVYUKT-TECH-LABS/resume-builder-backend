@@ -213,7 +213,7 @@ export class ResumeService {
     };
   }
 
-  private async extractText(file: Express.Multer.File) {
+  public async extractText(file: Express.Multer.File) {
     const formData = new FormData();
     const blob = new Blob([file.buffer], { type: file.mimetype });
     formData.append('file', blob, file.originalname);
@@ -302,7 +302,7 @@ export class ResumeService {
     return 'ok';
   }
 
-  async generateAnalyses(upload_id: string, isFree: boolean) {
+  async generateAnalyses(upload_id: string, isFree: boolean, jd: string) {
     const uploaded = await this.uploadModel.findById(upload_id, {
       rawContent: 1,
       userId: 1,
@@ -319,6 +319,7 @@ export class ResumeService {
     const result = await this.openai.analyse(
       uploaded.rawContent,
       Boolean(isFree),
+      jd,
     );
     if (!Boolean(isFree)) await deductCredits(uploaded.userId, 50);
     await uploaded.updateOne({

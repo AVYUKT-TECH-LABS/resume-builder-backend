@@ -109,7 +109,8 @@ export class ResumeController {
         validators: [
           new MaxFileSizeValidator({ maxSize: 50000000 }),
           new FileTypeValidator({
-            fileType: 'application/pdf',
+            fileType:
+              /(application\/pdf|application\/msword|application\/vnd.openxmlformats-officedocument.wordprocessingml.document)/,
           }),
         ],
       }),
@@ -169,8 +170,11 @@ export class ResumeController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 100000 }),
-          new FileTypeValidator({ fileType: 'application/pdf' }),
+          new MaxFileSizeValidator({ maxSize: 50000000 }),
+          new FileTypeValidator({
+            fileType:
+              /(application\/pdf|application\/msword|application\/vnd.openxmlformats-officedocument.wordprocessingml.document)/,
+          }),
         ],
       }),
     )
@@ -219,8 +223,11 @@ export class ResumeController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 100000 }),
-          new FileTypeValidator({ fileType: 'application/pdf' }),
+          new MaxFileSizeValidator({ maxSize: 50000000 }),
+          new FileTypeValidator({
+            fileType:
+              /(application\/pdf|application\/msword|application\/vnd.openxmlformats-officedocument.wordprocessingml.document)/,
+          }),
         ],
       }),
     )
@@ -294,14 +301,38 @@ export class ResumeController {
     }
   }
 
-  @Get('analyse/:upload_id')
+  @Post('extractJD')
+  @UseInterceptors(FileInterceptor('file'))
+  async extractJD(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 50000000 }),
+          new FileTypeValidator({
+            fileType:
+              /(application\/pdf|application\/msword|application\/vnd.openxmlformats-officedocument.wordprocessingml.document)/,
+          }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    const jd = await this.resumeService.extractText(file);
+    return {
+      jd,
+    };
+  }
+
+  @Post('analyse/:upload_id')
   async suggestions(
     @Param('upload_id') upload_id: string,
     @Query('isFree') isFree: string,
+    @Body() body: { jd: string },
   ) {
     return this.resumeService.generateAnalyses(
       upload_id,
       isFree == 'false' ? false : true,
+      body.jd,
     );
   }
 
