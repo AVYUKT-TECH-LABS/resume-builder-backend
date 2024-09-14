@@ -19,7 +19,7 @@ export class ResumeServiceV2 {
     private config: ConfigService,
     private openai: OpenAiService,
     private cloud: CloudService,
-  ) { }
+  ) {}
 
   async get(resumeId: string, userId?: string | undefined) {
     try {
@@ -210,22 +210,21 @@ export class ResumeServiceV2 {
     const url = `${process.env.FRONTEND_URL}/pdf/${resumeId}`;
     await page.goto(url, { waitUntil: 'networkidle0' });
 
-    const customCSS = `
-    <style>
-      @page {
-        margin-top: 1in;
-        margin-bottom: 1in;
-      }
+    //   const customCSS = `
+    //   <style>
+    //     @page {
+    //       margin-top: 1in;
+    //       margin-bottom: 1in;
+    //     }
 
-      @page :first {
-        margin-top: 0;
-        margin-bottom:1in;
-      }
-    </style>
-  `;
+    //     @page :first {
+    //       margin-top: 0;
+    //       margin-bottom:1in;
+    //     }
+    //   </style>
+    // `;
 
-    await page.addStyleTag({ content: customCSS });
-
+    //   await page.addStyleTag({ content: customCSS });
 
     // Generate the PDF
     const pdfBuffer = await page.pdf({

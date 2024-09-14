@@ -213,7 +213,7 @@ export class ResumeService {
     };
   }
 
-  private async extractText(file: Express.Multer.File) {
+  public async extractText(file: Express.Multer.File) {
     const formData = new FormData();
     const blob = new Blob([file.buffer], { type: file.mimetype });
     formData.append('file', blob, file.originalname);
