@@ -141,7 +141,7 @@ export class JobPortalController {
   }
 
   @UseGuards(ClerkAuthGuard)
-  @Delete('/candidate/job/:id')
+  @Delete('/candidate/applications/job/:id')
   async withdrawJobApplicationForCandidate(
     @Param('id') jobId: string,
     @GetUser() user: User,
@@ -150,5 +150,11 @@ export class JobPortalController {
       user.id,
       jobId,
     );
+  }
+
+  @UseGuards(ClerkAuthGuard)
+  @Get('/candidate/applications/job')
+  async allJobApplicationForCandidate(@GetUser() user: User) {
+    return this.jobPortalService.allJobApplicationForCandidate(user.id);
   }
 }

@@ -205,7 +205,10 @@ export class JobPortalService {
   }
 
   async deleteSpecificJobForEmployer(employerId: string, jobId: string) {
-    return this.jobModel.deleteOne({ employer_id: employerId, _id: jobId });
+    return this.jobModel.updateOne(
+      { employer_id: employerId, _id: jobId },
+      { status: 'closed' },
+    );
   }
 
   async createJobPostingForEmployer(
@@ -320,43 +323,111 @@ export class JobPortalService {
   }
 
   async getSepcificJob(jobId: string) {
-    return this.jobModel.findOne(
-      {
-        _id: jobId,
-      },
-      {
-        status: 1,
-        company_name: 1,
-        job_title: 1,
-        job_type: 1,
-        is24_7: 1,
-        work_location_type: 1,
-        office_address: 1,
-        pay_type: 1,
-        fixed_salary: 1,
-        avg_incentive: 1,
-        perks: 1,
-        joining_fee_required: 1,
-        joining_fee: 1,
-        minimum_edu: 1,
-        english_level: 1,
-        experience_level: 1,
-        total_experience: 1,
-        gender: 1,
-        age: 1,
-        regional_languages: 1,
-        required_assets: 1,
-        skills: 1,
-        jd: 1,
-        interview_type: 1,
-        interview_address: 1,
-        walk_in_start_date: 1,
-        walk_in_end_date: 1,
-        walk_in_timings: 1,
-        other_instructions: 1,
-        online_interview_link: 1,
-        createdAt: 1,
-      },
+    return this.jobModel
+      .findOne(
+        {
+          _id: jobId,
+        },
+        {
+          status: 1,
+          company_name: 1,
+          job_title: 1,
+          job_type: 1,
+          is24_7: 1,
+          work_location_type: 1,
+          office_address: 1,
+          pay_type: 1,
+          fixed_salary: 1,
+          avg_incentive: 1,
+          perks: 1,
+          joining_fee_required: 1,
+          joining_fee: 1,
+          minimum_edu: 1,
+          english_level: 1,
+          experience_level: 1,
+          total_experience: 1,
+          gender: 1,
+          age: 1,
+          regional_languages: 1,
+          required_assets: 1,
+          skills: 1,
+          jd: 1,
+          interview_type: 1,
+          interview_address: 1,
+          walk_in_start_date: 1,
+          walk_in_end_date: 1,
+          walk_in_timings: 1,
+          other_instructions: 1,
+          online_interview_link: 1,
+          createdAt: 1,
+        },
+      )
+      .exec();
+  }
+
+  async allJobApplicationForCandidate(candidateId: string) {
+    const appliedApplications = await this.jobApplicationModel
+      .find(
+        {
+          user_id: candidateId,
+        },
+        {
+          job_id: 1,
+          application_status: 1,
+          resume_id: 1,
+          last_updated: 1,
+        },
+      )
+      .exec();
+
+    const applicationDetails = await Promise.all(
+      appliedApplications.map(async (application) => {
+        const jobDetails = await this.jobModel
+          .findOne({
+            _id: application.job_id,
+          })
+          .select({
+            status: 1,
+            company_name: 1,
+            job_title: 1,
+            job_type: 1,
+            is24_7: 1,
+            work_location_type: 1,
+            office_address: 1,
+            pay_type: 1,
+            fixed_salary: 1,
+            avg_incentive: 1,
+            perks: 1,
+            joining_fee_required: 1,
+            joining_fee: 1,
+            minimum_edu: 1,
+            english_level: 1,
+            experience_level: 1,
+            total_experience: 1,
+            gender: 1,
+            age: 1,
+            regional_languages: 1,
+            required_assets: 1,
+            skills: 1,
+            jd: 1,
+            interview_type: 1,
+            interview_address: 1,
+            walk_in_start_date: 1,
+            walk_in_end_date: 1,
+            walk_in_timings: 1,
+            other_instructions: 1,
+            online_interview_link: 1,
+            createdAt: 1,
+          })
+          .exec();
+
+        return {
+          ...application.toObject(),
+          jobDetails,
+        };
+      }),
     );
+
+    return applicationDetails;
   }
 }
