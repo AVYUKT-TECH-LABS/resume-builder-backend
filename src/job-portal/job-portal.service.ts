@@ -8,12 +8,12 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import _puppeteer from 'src/puppeteer';
 import { JobApplications } from 'src/schemas/job-application.schema';
 import { Job } from 'src/schemas/job.schema';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobApplicationDto } from './dto/update-job-application.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
-import _puppeteer from 'src/puppeteer';
 
 @Injectable()
 export class JobPortalService {
@@ -317,5 +317,46 @@ export class JobPortalService {
       user_id: candidateId,
       job_id: jobId,
     });
+  }
+
+  async getSepcificJob(jobId: string) {
+    return this.jobModel.findOne(
+      {
+        _id: jobId,
+      },
+      {
+        status: 1,
+        company_name: 1,
+        job_title: 1,
+        job_type: 1,
+        is24_7: 1,
+        work_location_type: 1,
+        office_address: 1,
+        pay_type: 1,
+        fixed_salary: 1,
+        avg_incentive: 1,
+        perks: 1,
+        joining_fee_required: 1,
+        joining_fee: 1,
+        minimum_edu: 1,
+        english_level: 1,
+        experience_level: 1,
+        total_experience: 1,
+        gender: 1,
+        age: 1,
+        regional_languages: 1,
+        required_assets: 1,
+        skills: 1,
+        jd: 1,
+        interview_type: 1,
+        interview_address: 1,
+        walk_in_start_date: 1,
+        walk_in_end_date: 1,
+        walk_in_timings: 1,
+        other_instructions: 1,
+        online_interview_link: 1,
+        createdAt: 1,
+      },
+    );
   }
 }

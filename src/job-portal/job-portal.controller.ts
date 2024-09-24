@@ -121,6 +121,12 @@ export class JobPortalController {
   }
 
   @UseGuards(ClerkAuthGuard)
+  @Get('/candidate/job/:id')
+  async getSpecificJobPosting(@Param('id') id: string) {
+    return this.jobPortalService.getSepcificJob(id);
+  }
+
+  @UseGuards(ClerkAuthGuard)
   @Post('/candidate/job/:id')
   async createJobApplicationForCandidate(
     @Param('id') jobId: string,
