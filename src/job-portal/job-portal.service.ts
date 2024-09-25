@@ -6,11 +6,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import _puppeteer from 'src/puppeteer';
-import { JobApplications } from 'src/schemas/job-application.schema';
-import { Job } from 'src/schemas/job.schema';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobApplicationDto } from './dto/update-job-application.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
@@ -20,37 +17,36 @@ export class JobPortalService {
   private readonly clerkClient: ReturnType<typeof createClerkClient>;
 
   constructor(
-    @InjectModel(Job.name) private jobModel: Model<Job>,
-    @InjectModel(JobApplications.name)
-    private jobApplicationModel: Model<JobApplications>,
     private configService: ConfigService,
+    private prisma: PrismaService,
   ) {
     this.clerkClient = this.configService.get('clerk');
   }
 
   // Employer
   async getAllJobsForEmployer(employerId: string) {
-    const allJobs = await this.jobModel
-      .find(
-        { employer_id: employerId },
-        {
-          status: 1,
-          company_name: 1,
-          job_title: 1,
-          work_location_type: 1,
-          createdAt: 1,
-        },
-      )
-      .exec();
+    const allJobs = await this.prisma.job.findMany({
+      where: { employerId },
+      select: {
+        id: true,
+        status: true,
+        company_name: true,
+        job_title: true,
+        work_location_type: true,
+        createdAt: true,
+      },
+    });
 
     const jobsWithApplicants = await Promise.all(
       allJobs.map(async (job) => {
-        const applicantsCount = await this.jobApplicationModel
-          .countDocuments({ job_id: job._id })
-          .exec();
+        const applicantsCount = await this.prisma.application.count({
+          where: {
+            jobId: job.id,
+          },
+        });
 
         return {
-          ...job.toObject(),
+          ...job,
           applicants: applicantsCount,
         };
       }),
@@ -60,74 +56,74 @@ export class JobPortalService {
   }
 
   async getSpecificJobForEmployer(employerId: string, jobId: string) {
-    return this.jobModel.findOne(
-      { _id: jobId, employer_id: employerId },
-      {
-        status: 1,
-        company_name: 1,
-        job_title: 1,
-        job_type: 1,
-        is24_7: 1,
-        work_location_type: 1,
-        office_address: 1,
-        pay_type: 1,
-        fixed_salary: 1,
-        avg_incentive: 1,
-        perks: 1,
-        joining_fee_required: 1,
-        joining_fee: 1,
-        minimum_edu: 1,
-        english_level: 1,
-        experience_level: 1,
-        total_experience: 1,
-        gender: 1,
-        age: 1,
-        regional_languages: 1,
-        required_assets: 1,
-        skills: 1,
-        jd: 1,
-        interview_type: 1,
-        interview_address: 1,
-        walk_in_start_date: 1,
-        walk_in_end_date: 1,
-        walk_in_timings: 1,
-        other_instructions: 1,
-        online_interview_link: 1,
-        createdAt: 1,
+    return this.prisma.job.findUnique({
+      where: { id: jobId, employerId },
+      select: {
+        status: true,
+        company_name: true,
+        job_title: true,
+        job_type: true,
+        is24_7: true,
+        work_location_type: true,
+        office_address: true,
+        pay_type: true,
+        fixed_salary: true,
+        avg_incentive: true,
+        perks: true,
+        joining_fee_required: true,
+        joining_fee: true,
+        minimum_edu: true,
+        english_level: true,
+        experience_level: true,
+        total_experience: true,
+        gender: true,
+        age: true,
+        regional_languages: true,
+        required_assets: true,
+        skills: true,
+        jd: true,
+        interview_type: true,
+        interview_address: true,
+        walk_in_start_date: true,
+        walk_in_end_date: true,
+        walk_in_timings: true,
+        other_instructions: true,
+        online_interview_link: true,
+        createdAt: true,
       },
-    );
+    });
   }
 
   async getCandidatesForSpecificJob(employerId: string, jobId: string) {
-    const jobExists = await this.jobModel.findOne(
-      {
-        employer_id: employerId,
-        _id: jobId,
+    const jobExists = await this.prisma.job.findUnique({
+      where: {
+        employerId,
+        id: jobId,
       },
-      {
-        job_title: 1,
-        company_name: 1,
+      select: {
+        job_title: true,
+        company_name: true,
       },
-    );
+    });
 
     if (!jobExists) {
       throw new NotFoundException('Job not found!');
     }
 
-    const applications = await this.jobApplicationModel.find(
-      {
-        job_id: jobId,
+    const applications = await this.prisma.application.findMany({
+      where: {
+        id: jobId,
       },
-      {
-        user_id: 1,
-        resume_id: 1,
-        application_status: 1,
-        cover_letter: 1,
-        last_updated: 1,
+      select: {
+        userId: true,
+        resume_id: true,
+        application_status: true,
+        cover_letter: true,
+        last_updated: true,
       },
-    );
+    });
 
-    const userIds = [...new Set(applications.map((app) => app.user_id))];
+    const userIds = [...new Set(applications.map((app) => app.userId))];
 
     const userDetailsPromises = userIds.map(async (userId) => {
       try {
@@ -148,18 +144,18 @@ export class JobPortalService {
 
     const completeApplications = applications.map((application) => {
       const userDetail = userDetails.find(
-        (user) => user?.userId === application.user_id,
+        (user) => user?.userId === application.userId,
       );
 
       return {
-        ...application.toObject(), // Convert Mongoose model to plain object
+        ...application, // Convert Mongoose model to plain object
         userDetail,
       };
     });
 
     return {
       applications: completeApplications,
-      jobDetails: jobExists.toObject(),
+      jobDetails: jobExists,
     };
   }
 
@@ -168,24 +164,26 @@ export class JobPortalService {
     jobId: string,
     updatedDetails: UpdateJobApplicationDto,
   ) {
-    const jobExists = await this.jobModel.findOne({
-      employer_id: employerId,
-      _id: jobId,
+    const jobExists = await this.prisma.job.findUnique({
+      where: {
+        employerId: employerId,
+        id: jobId,
+      },
     });
 
     if (!jobExists) {
       throw new NotFoundException('Job not found!');
     }
 
-    return this.jobApplicationModel.updateOne(
-      {
-        job_id: jobId,
-        user_id: updatedDetails.user_id,
+    return this.prisma.application.update({
+      where: {
+        id: jobId,
+        userId: updatedDetails.user_id,
       },
-      {
+      data: {
         application_status: updatedDetails.application_status,
       },
-    );
+    });
   }
 
   async updateSpecificJobApplicationForEmployer(
@@ -193,22 +191,20 @@ export class JobPortalService {
     jobId: string,
     updateResumeDto: UpdateJobDto,
   ) {
-    return this.jobModel.updateOne(
-      {
-        _id: jobId,
-        employer_id: employerId,
+    return this.prisma.job.update({
+      where: {
+        id: jobId,
+        employerId: employerId,
       },
-      {
-        ...updateResumeDto,
-      },
-    );
+      data: updateResumeDto as never,
+    });
   }
 
   async deleteSpecificJobForEmployer(employerId: string, jobId: string) {
-    return this.jobModel.updateOne(
-      { employer_id: employerId, _id: jobId },
-      { status: 'closed' },
-    );
+    return this.prisma.job.update({
+      where: { employerId: employerId, id: jobId },
+      data: { status: 'closed' },
+    });
   }
 
   async createJobPostingForEmployer(
@@ -216,11 +212,14 @@ export class JobPortalService {
     employerId: string,
   ) {
     try {
-      const jobPosted = new this.jobModel({
-        ...createJobPortalDto,
-        employer_id: employerId,
+      const jobPosted = await this.prisma.job.create({
+        data: {
+          ...createJobPortalDto,
+          employerId,
+        } as never,
       });
-      return jobPosted.save();
+
+      return jobPosted;
     } catch (err) {
       throw new InternalServerErrorException('Failed to post job');
     }
@@ -247,42 +246,41 @@ export class JobPortalService {
 
   // Candidate
   async getAllJobs() {
-    return this.jobModel
-      .find()
-      .select({
-        status: 1,
-        company_name: 1,
-        job_title: 1,
-        job_type: 1,
-        is24_7: 1,
-        work_location_type: 1,
-        office_address: 1,
-        pay_type: 1,
-        fixed_salary: 1,
-        avg_incentive: 1,
-        perks: 1,
-        joining_fee_required: 1,
-        joining_fee: 1,
-        minimum_edu: 1,
-        english_level: 1,
-        experience_level: 1,
-        total_experience: 1,
-        gender: 1,
-        age: 1,
-        regional_languages: 1,
-        required_assets: 1,
-        skills: 1,
-        jd: 1,
-        interview_type: 1,
-        interview_address: 1,
-        walk_in_start_date: 1,
-        walk_in_end_date: 1,
-        walk_in_timings: 1,
-        other_instructions: 1,
-        online_interview_link: 1,
-        createdAt: 1,
-      })
-      .exec();
+    return this.prisma.job.findMany({
+      select: {
+        status: true,
+        company_name: true,
+        job_title: true,
+        job_type: true,
+        is24_7: true,
+        work_location_type: true,
+        office_address: true,
+        pay_type: true,
+        fixed_salary: true,
+        avg_incentive: true,
+        perks: true,
+        joining_fee_required: true,
+        joining_fee: true,
+        minimum_edu: true,
+        english_level: true,
+        experience_level: true,
+        total_experience: true,
+        gender: true,
+        age: true,
+        regional_languages: true,
+        required_assets: true,
+        skills: true,
+        jd: true,
+        interview_type: true,
+        interview_address: true,
+        walk_in_start_date: true,
+        walk_in_end_date: true,
+        walk_in_timings: true,
+        other_instructions: true,
+        online_interview_link: true,
+        createdAt: true,
+      },
+    });
   }
 
   async createJobApplicationForCandidate(
@@ -291,24 +289,28 @@ export class JobPortalService {
     jobId: string,
   ) {
     try {
-      const applicationExists = await this.jobApplicationModel.findOne({
-        job_id: jobId,
-        user_id: candidateId,
+      const applicationExists = await this.prisma.application.findUnique({
+        where: {
+          id: jobId,
+          userId: candidateId,
+        },
       });
 
       if (applicationExists) {
         throw new ConflictException('Application already exists!');
       }
 
-      const jobPosted = new this.jobApplicationModel({
-        application_status: 'application_recieved',
-        last_updated: new Date(),
-        resume_id: resumeId,
-        user_id: candidateId,
-        job_id: jobId,
-        cover_letter: '',
+      const jobPosted = await this.prisma.application.create({
+        data: {
+          application_status: 'application_recieved',
+          last_updated: new Date(),
+          resume_id: resumeId,
+          userId: candidateId,
+          jobId: jobId,
+          cover_letter: '',
+        },
       });
-      return jobPosted.save();
+      return jobPosted;
     } catch (err) {
       if (err instanceof ConflictException) throw err;
       throw new InternalServerErrorException('Failed to post job');
@@ -316,87 +318,85 @@ export class JobPortalService {
   }
 
   async withdrawJobApplicationForCandidate(candidateId: string, jobId: string) {
-    return this.jobApplicationModel.deleteOne({
-      user_id: candidateId,
-      job_id: jobId,
+    return this.prisma.application.delete({
+      where: {
+        userId: candidateId,
+        jobId: jobId,
+      },
     });
   }
 
   async getSepcificJob(jobId: string) {
-    return this.jobModel
-      .findOne(
-        {
-          _id: jobId,
-        },
-        {
-          status: 1,
-          company_name: 1,
-          job_title: 1,
-          job_type: 1,
-          is24_7: 1,
-          work_location_type: 1,
-          office_address: 1,
-          pay_type: 1,
-          fixed_salary: 1,
-          avg_incentive: 1,
-          perks: 1,
-          joining_fee_required: 1,
-          joining_fee: 1,
-          minimum_edu: 1,
-          english_level: 1,
-          experience_level: 1,
-          total_experience: 1,
-          gender: 1,
-          age: 1,
-          regional_languages: 1,
-          required_assets: 1,
-          skills: 1,
-          jd: 1,
-          interview_type: 1,
-          interview_address: 1,
-          walk_in_start_date: 1,
-          walk_in_end_date: 1,
-          walk_in_timings: 1,
-          other_instructions: 1,
-          online_interview_link: 1,
-          createdAt: 1,
-        },
-      )
-      .exec();
+    return this.prisma.job.findUnique({
+      where: {
+        id: jobId,
+      },
+      select: {
+        status: true,
+        company_name: true,
+        job_title: true,
+        job_type: true,
+        is24_7: true,
+        work_location_type: true,
+        office_address: true,
+        pay_type: true,
+        fixed_salary: true,
+        avg_incentive: true,
+        perks: true,
+        joining_fee_required: true,
+        joining_fee: true,
+        minimum_edu: true,
+        english_level: true,
+        experience_level: true,
+        total_experience: true,
+        gender: true,
+        age: true,
+        regional_languages: true,
+        required_assets: true,
+        skills: true,
+        jd: true,
+        interview_type: true,
+        interview_address: true,
+        walk_in_start_date: true,
+        walk_in_end_date: true,
+        walk_in_timings: true,
+        other_instructions: true,
+        online_interview_link: true,
+        createdAt: true,
+      },
+    });
   }
 
   async allJobApplicationForCandidate(candidateId: string) {
-    const appliedApplications = await this.jobApplicationModel
-      .find(
-        {
-          user_id: candidateId,
-        },
-        {
-          job_id: 1,
-          application_status: 1,
-          resume_id: 1,
-          last_updated: 1,
-        },
-      )
-      .exec();
+    const appliedApplications = await this.prisma.application.findMany({
+      where: {
+        userId: candidateId,
+      },
+      select: {
+        jobId: true,
+        application_status: true,
+        resume_id: true,
+        last_updated: true,
+      },
+    });
 
     const applicationDetails = await Promise.all(
       appliedApplications.map(async (application) => {
-        const jobDetails = await this.jobModel
-          .findOne({
-            _id: application.job_id,
-          })
-          .select({
-            status: 1,
-            company_name: 1,
-            job_title: 1,
-            work_location_type: 1,
-            createdAt: 1,
-          })
-          .exec();
+        const jobDetails = await this.prisma.job.findUnique({
+          where: {
+            id: application.jobId,
+          },
+          select: {
+            status: true,
+            company_name: true,
+            job_title: true,
+            work_location_type: true,
+            createdAt: true,
+          },
+        });
 
         return {
-          ...application.toObject(),
+          ...application,
           job_details: jobDetails,
         };
       }),

@@ -11,6 +11,7 @@ import { LinkedinOptimizerModule } from './linkedin-optimizer/linkedin-optimizer
 import { OpenAIModule } from './openai/openai.module';
 import { PaymentsModule } from './payments/payments.module';
 import { ResumeModule } from './resume/resume.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ResumeModule } from './resume/resume.module';
     LinkedinOptimizerModule,
     IpInfoModule,
     JobPortalModule,
+    PrismaModule,
   ],
   controllers: [AppController],
 })
