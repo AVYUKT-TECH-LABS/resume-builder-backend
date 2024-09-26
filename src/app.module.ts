@@ -5,6 +5,8 @@ import { AppController } from './app.controller';
 import { CloudModule } from './cloud/cloud.module';
 import clerkConfig from './config/clerk.config';
 import { IpInfoModule } from './ip-info/ip-info.module';
+import clerkConfig from './config/clerk.config';
+import { IpInfoModule } from './ip-info/ip-info.module';
 import { JobPortalModule } from './job-portal/job-portal.module';
 import { JobsModule } from './jobs/jobs.module';
 import { LinkedinOptimizerModule } from './linkedin-optimizer/linkedin-optimizer.module';
@@ -28,11 +30,13 @@ import { PrismaModule } from './prisma/prisma.module';
     PaymentsModule,
     JobsModule,
     LinkedinOptimizerModule,
+    NotificationModule,
     IpInfoModule,
     JobPortalModule,
     PrismaModule,
   ],
   controllers: [AppController],
+  providers: [NotificationService],
 })
 export class AppModule {}
 // export class AppModule implements NestModule {
