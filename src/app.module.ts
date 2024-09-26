@@ -5,10 +5,11 @@ import { AppController } from './app.controller';
 import { CloudModule } from './cloud/cloud.module';
 import clerkConfig from './config/clerk.config';
 import { IpInfoModule } from './ip-info/ip-info.module';
+import clerkConfig from './config/clerk.config';
+import { IpInfoModule } from './ip-info/ip-info.module';
+import { JobPortalModule } from './job-portal/job-portal.module';
 import { JobsModule } from './jobs/jobs.module';
 import { LinkedinOptimizerModule } from './linkedin-optimizer/linkedin-optimizer.module';
-import { NotificationModule } from './notification/notification.module';
-import { NotificationService } from './notification/notification.service';
 import { OpenAIModule } from './openai/openai.module';
 import { PaymentsModule } from './payments/payments.module';
 import { ResumeModule } from './resume/resume.module';
@@ -30,6 +31,7 @@ import { ResumeModule } from './resume/resume.module';
     LinkedinOptimizerModule,
     NotificationModule,
     IpInfoModule,
+    JobPortalModule,
   ],
   controllers: [AppController],
   providers: [NotificationService],
