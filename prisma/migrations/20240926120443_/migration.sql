@@ -29,16 +29,16 @@
 
 */
 -- DropForeignKey
-ALTER TABLE `employer` DROP FOREIGN KEY `Employer_organizationId_fkey`;
+ALTER TABLE `Employer` DROP FOREIGN KEY `Employer_organizationId_fkey`;
 
 -- AlterTable
-ALTER TABLE `application` DROP COLUMN `createdAt`,
+ALTER TABLE `Application` DROP COLUMN `createdAt`,
     DROP COLUMN `updatedAt`,
     ADD COLUMN `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     ADD COLUMN `updated_at` DATETIME(3) NOT NULL;
 
 -- AlterTable
-ALTER TABLE `employer` DROP COLUMN `createdAt`,
+ALTER TABLE `Employer` DROP COLUMN `createdAt`,
     DROP COLUMN `organizationId`,
     DROP COLUMN `updatedAt`,
     ADD COLUMN `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -49,31 +49,31 @@ ALTER TABLE `employer` DROP COLUMN `createdAt`,
     MODIFY `password` VARCHAR(191) NULL;
 
 -- AlterTable
-ALTER TABLE `job` DROP COLUMN `createdAt`,
+ALTER TABLE `Job` DROP COLUMN `createdAt`,
     DROP COLUMN `updatedAt`,
     ADD COLUMN `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     ADD COLUMN `updated_at` DATETIME(3) NOT NULL;
 
 -- AlterTable
-ALTER TABLE `order` DROP COLUMN `createdAt`,
+ALTER TABLE `Order` DROP COLUMN `createdAt`,
     DROP COLUMN `updatedAt`,
     ADD COLUMN `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     ADD COLUMN `updated_at` DATETIME(3) NOT NULL;
 
 -- AlterTable
-ALTER TABLE `organization` DROP COLUMN `createdAt`,
+ALTER TABLE `Organization` DROP COLUMN `createdAt`,
     DROP COLUMN `updatedAt`,
     ADD COLUMN `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     ADD COLUMN `updated_at` DATETIME(3) NOT NULL;
 
 -- AlterTable
-ALTER TABLE `plan` DROP COLUMN `createdAt`,
+ALTER TABLE `Plan` DROP COLUMN `createdAt`,
     DROP COLUMN `updatedAt`,
     ADD COLUMN `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     ADD COLUMN `updated_at` DATETIME(3) NOT NULL;
 
 -- AlterTable
-ALTER TABLE `user` DROP COLUMN `createdAt`,
+ALTER TABLE `User` DROP COLUMN `createdAt`,
     DROP COLUMN `updatedAt`,
     ADD COLUMN `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     ADD COLUMN `provider` ENUM('EMAIL_PASSWORD', 'GOOGLE', 'LINKEDIN') NOT NULL DEFAULT 'EMAIL_PASSWORD',

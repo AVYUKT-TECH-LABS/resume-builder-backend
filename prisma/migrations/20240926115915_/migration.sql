@@ -6,7 +6,7 @@
 
 */
 -- AlterTable
-ALTER TABLE `employer` ADD COLUMN `password` VARCHAR(191) NOT NULL;
+ALTER TABLE `Employer` ADD COLUMN `password` VARCHAR(191) NOT NULL;
 
 -- AlterTable
-ALTER TABLE `user` ADD COLUMN `password` VARCHAR(191) NOT NULL;
+ALTER TABLE `User` ADD COLUMN `password` VARCHAR(191) NOT NULL;

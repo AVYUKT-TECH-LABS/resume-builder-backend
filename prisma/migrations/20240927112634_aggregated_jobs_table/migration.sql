@@ -12,16 +12,16 @@
 
 */
 -- AlterTable
-ALTER TABLE `employer` ADD COLUMN `deleted_at` DATETIME(3) NULL,
+ALTER TABLE `Employer` ADD COLUMN `deleted_at` DATETIME(3) NULL,
     ADD COLUMN `deletion_message` VARCHAR(191) NULL DEFAULT '',
     ADD COLUMN `is_deleted` BOOLEAN NOT NULL DEFAULT false,
     ADD COLUMN `is_verified` BOOLEAN NOT NULL DEFAULT false;
 
 -- AlterTable
-ALTER TABLE `job` ADD COLUMN `organizationId` VARCHAR(191) NOT NULL;
+ALTER TABLE `Job` ADD COLUMN `organizationId` VARCHAR(191) NOT NULL;
 
 -- AlterTable
-ALTER TABLE `organization` ADD COLUMN `city` VARCHAR(191) NOT NULL,
+ALTER TABLE `Organization` ADD COLUMN `city` VARCHAR(191) NOT NULL,
     ADD COLUMN `deleted_at` DATETIME(3) NULL,
     ADD COLUMN `description` VARCHAR(191) NOT NULL,
     ADD COLUMN `display_name` VARCHAR(191) NOT NULL DEFAULT '',

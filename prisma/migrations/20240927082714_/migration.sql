@@ -6,7 +6,7 @@
 
 */
 -- AlterTable
-ALTER TABLE `employer` DROP COLUMN `password`;
+ALTER TABLE `Employer` DROP COLUMN `password`;
 
 -- AlterTable
-ALTER TABLE `user` DROP COLUMN `password`;
+ALTER TABLE `User` DROP COLUMN `password`;

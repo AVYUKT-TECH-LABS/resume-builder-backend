@@ -26,20 +26,20 @@
 
 */
 -- DropIndex
-DROP INDEX `Application_status_idx` ON `application`;
+DROP INDEX `Application_status_idx` ON `Application`;
 
 -- DropIndex
-DROP INDEX `Job_title_idx` ON `job`;
+DROP INDEX `Job_title_idx` ON `Job`;
 
 -- AlterTable
-ALTER TABLE `application` DROP COLUMN `status`,
+ALTER TABLE `Application` DROP COLUMN `status`,
     ADD COLUMN `application_status` ENUM('application_recieved', 'under_review', 'shortlisted', 'assessment_scheduled', 'interview_scheduled', 'interview_in_progress', 'interview_completed', 'offer_made', 'offer_accepted', 'offer_rejected', 'hired', 'rejected', 'on_hold') NOT NULL,
     ADD COLUMN `cover_letter` VARCHAR(191) NULL,
     ADD COLUMN `last_updated` DATETIME(3) NOT NULL,
     ADD COLUMN `resume_id` VARCHAR(191) NOT NULL;
 
 -- AlterTable
-ALTER TABLE `job` DROP COLUMN `description`,
+ALTER TABLE `Job` DROP COLUMN `description`,
     DROP COLUMN `title`,
     ADD COLUMN `age` VARCHAR(191) NULL,
     ADD COLUMN `avg_incentive` VARCHAR(191) NULL,

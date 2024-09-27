@@ -6,7 +6,7 @@
 
 */
 -- AlterTable
-ALTER TABLE `employer` ADD COLUMN `email` VARCHAR(191) NOT NULL;
+ALTER TABLE `Employer` ADD COLUMN `email` VARCHAR(191) NOT NULL;
 
 -- CreateIndex
 CREATE UNIQUE INDEX `Employer_email_key` ON `Employer`(`email`);
