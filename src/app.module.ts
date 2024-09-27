@@ -18,6 +18,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ResumeModule } from './resume/resume.module';
 import { UsersModule } from './users/users.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { UsersModule } from './users/users.module';
     EmployerModule,
     UsersModule,
     JwtModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [NotificationService],
