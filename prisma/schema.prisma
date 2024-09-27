@@ -11,7 +11,6 @@ model User {
   id           String        @id @default(uuid())
   email        String        @unique
   name         String
-  password     String?
   provider_id  String?       @unique
   provider     AuthProvider  @default(EMAIL_PASSWORD)
   applications Application[]
@@ -35,7 +34,6 @@ model Employer {
   id              String        @id @default(uuid())
   email           String        @unique
   name            String
-  password        String?
   provider_id     String?       @unique
   provider        AuthProvider  @default(EMAIL_PASSWORD)
   organization    Organization? @relation(fields: [organization_id], references: [id])

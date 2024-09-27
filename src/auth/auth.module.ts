@@ -2,9 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { EmployerModule } from 'src/employer/employer.module';
+import { NotificationModule } from 'src/notification/notification.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { MagicLoginStrategy } from './strategy/magiclink.strategy';
 
 @Module({
   imports: [
@@ -17,8 +19,10 @@ import { AuthService } from './auth.service';
       inject: [ConfigService],
     }),
     PrismaModule,
+    NotificationModule,
+    ConfigModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, MagicLoginStrategy],
 })
 export class AuthModule {}

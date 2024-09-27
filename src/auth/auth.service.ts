@@ -5,12 +5,11 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import * as bcrypt from 'bcrypt';
-import { EmailSigninDto } from 'src/employer/dto/email.signin.dto';
-
+import { Employer, User } from '@prisma/client';
 import { EmailSignupDto } from 'src/employer/dto/email.signup.dto';
 import { EmployerService } from 'src/employer/employer.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UserType } from './types/index.type';
 
 @Injectable()
 export class AuthService {
@@ -22,22 +21,13 @@ export class AuthService {
   ) {}
 
   async emailEmployerSignup(data: EmailSignupDto) {
-    const { password } = data;
-
     const employee = await this.employerService.findEmployeeByEmail(data.email);
 
     if (employee) {
       throw new ConflictException('Account already exists!');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const employeeCreated =
-      await this.employerService.createEmployeeWithoutCompany({
-        ...data,
-        password: hashedPassword,
-      });
+    await this.employerService.createEmployeeWithoutCompany(data);
 
     return {
       success: true,
@@ -45,40 +35,25 @@ export class AuthService {
     };
   }
 
-  async emailEmployerSignin(data: EmailSigninDto) {
-    const { email, password } = data;
+  async validateUser(email: string, userType: UserType) {
+    let user: Employer | User | null;
 
-    const employee = await this.employerService.findEmployeeByEmail(email);
-
-    if (!employee) {
-      throw new UnauthorizedException('Invalid email or password.');
+    if (userType === UserType.USER) {
+      user = await this.prismaService.user.findFirst({
+        where: { email },
+      });
     }
 
-    const passwordMatches = await bcrypt.compare(password, employee.password);
-
-    if (!passwordMatches) {
-      throw new UnauthorizedException('Invalid email or password.');
+    if (userType === UserType.EMPLOYER) {
+      user = await this.prismaService.employer.findFirst({
+        where: { email },
+      });
     }
 
-    const payload = { email: employee.email, sub: employee.id };
-    const token = this.jwtService.sign(payload);
-
-    const response = {
-      success: true,
-      token,
-    };
-
-    if (!employee.organization_id) {
-      return {
-        ...response,
-        message: 'Sign-in successful, but onboarding is required.',
-        redirectUrl: '/onboarding',
-      };
+    if (!user) {
+      throw new UnauthorizedException('Account not found, Kindly Sign up!');
     }
 
-    return {
-      ...response,
-      message: 'Sign-in successful.',
-    };
+    return user;
   }
 }
