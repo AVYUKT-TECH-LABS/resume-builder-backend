@@ -18,15 +18,11 @@ export class JobsController {
     if (!searchTerm) {
       throw new BadRequestException({ error: 'Missing search term' });
     }
-
-    let browser: any = null;
     try {
-      browser = await this.jobsService.createBrowserInstance();
-
       // Fetch jobs from multiple platforms in parallel with error handling using Promise.allSettled
       const [indeedResult, naukriResult] = await Promise.allSettled([
-        this.jobsService.scrapeIndeedJobs(browser, searchTerm),
-        this.jobsService.scrapeNaukriJobs(browser, searchTerm),
+        this.jobsService.scrapeIndeedJobs(),
+        this.jobsService.scrapeNaukriJobs(),
       ]);
 
       // Process the results and only include successful scrapes
@@ -60,6 +56,7 @@ export class JobsController {
           <table>
             <thead>
               <tr>
+                <th>IDX</th>
                 <th>Platform</th>
                 <th>Title</th>
                 <th>Company</th>
@@ -70,8 +67,9 @@ export class JobsController {
             <tbody>
               ${jobs
                 .map(
-                  (job) => `
+                  (job, idx) => `
                 <tr>
+                  <td>${idx}</td>
                   <td>${job.platform}</td>
                   <td>${job.title}</td>
                   <td>${job.company}</td>
@@ -90,8 +88,6 @@ export class JobsController {
       throw new InternalServerErrorException({
         error: 'An error occurred while fetching jobs',
       });
-    } finally {
-      if (browser) await browser.close();
     }
   }
 }

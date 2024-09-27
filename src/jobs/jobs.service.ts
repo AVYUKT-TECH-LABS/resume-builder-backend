@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import puppeteer from 'puppeteer';
+import _puppeteer from '../puppeteer';
 
 interface Job {
   title: string;
@@ -11,19 +11,6 @@ interface Job {
 
 @Injectable()
 export class JobsService {
-  createBrowserInstance = async () => {
-    return await puppeteer.launch({
-      headless: true, // Set to false if you want to see the browser
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-blink-features=AutomationControlled',
-        '--disable-gpu',
-      ],
-    });
-  };
-
   setupPage = async (browser: any) => {
     const page = await browser.newPage();
 
@@ -107,18 +94,13 @@ export class JobsService {
     // });
   }
 
-  async scrapeIndeedJobs(
-    browser: any,
-    searchTerm: string,
-    numPages: number = 5,
-  ): Promise<Job[]> {
+  async scrapeIndeedJobs(numPages: number = 1): Promise<Job[]> {
+    const browser = await _puppeteer();
     const page = await this.setupPage(browser);
     const jobs: Job[] = [];
 
     for (let i = 0; i < numPages; i++) {
-      const url = `https://www.indeed.com/jobs?q=${encodeURIComponent(
-        searchTerm,
-      )}&start=${i * 10}`;
+      const url = `https://in.indeed.com/jobs?q=&l=India&start=${i * 10}`;
       await page.goto(url, { waitUntil: 'networkidle0' });
 
       const [, jobCards] = await Promise.all([
@@ -160,18 +142,14 @@ export class JobsService {
     return jobs;
   }
 
-  async scrapeNaukriJobs(
-    browser: any,
-    searchTerm: string,
-    numPages: number = 5,
-  ): Promise<Job[]> {
+  async scrapeNaukriJobs(numPages: number = 1): Promise<Job[]> {
+    const browser = await _puppeteer();
     const page = await this.setupPage(browser);
 
     const jobs: Job[] = [];
-    const term = searchTerm.replace(' ', '-');
 
     for (let i = 0; i < numPages; i++) {
-      const url = `https://www.naukri.com/${term}-jobs-in-india-${i}`;
+      const url = `https://www.naukri.com/jobs-in-india-${i}`;
       await page.goto(url, { waitUntil: 'networkidle0' });
 
       const [, jobCards] = await Promise.all([

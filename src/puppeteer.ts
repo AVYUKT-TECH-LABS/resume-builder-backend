@@ -10,7 +10,7 @@ export default async function _puppeteer() {
     //     '--no-sandbox',
     //     '--disable-setuid-sandbox',
     //     '--disable-gpu',
-    //     '--window-size=11920,1080',
+    //     '--window-size=1920,1080',
     //     '--hide-scrollbars',
     //   ],
     //   executablePath: puppeteer.executablePath(),
