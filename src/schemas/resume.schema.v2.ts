@@ -92,6 +92,12 @@ export class ResumeV2 {
 
   @Prop({ type: Object, required: true })
   picture: Picture;
+
+  @Prop({ type: Array })
+  embeddings: number[];
+
+  @Prop({ type: String })
+  plainText: string;
 }
 
 export const ResumeSchemaV2 = SchemaFactory.createForClass(ResumeV2);

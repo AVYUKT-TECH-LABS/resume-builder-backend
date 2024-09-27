@@ -167,8 +167,11 @@ export class ResumeServiceV2 {
         'v2',
       );
 
+      //create embeddings
+      const embeddings = await this.openai.generateEmbeddings(resume.plainText);
+
       const created = await this.create(
-        { ...defaults, ...resume },
+        { ...defaults, ...resume, embeddings },
         uploaded.userId,
       );
 
@@ -307,5 +310,95 @@ export class ResumeServiceV2 {
       console.error('An error occurred while updating previews:', err);
       throw err;
     }
+  }
+
+  /*TODO:
+    1. create and save embeddings when creating jobs
+    2. create an api to get recommended candidates
+    3. api will use the JD embeddings to do a vector search
+    4. return paginated candidates list
+
+    Also make a feature for natural language candidate search
+  */
+  async getRec(jd: string, page: number = 1, pageSize: number = 10) {
+    const jdEmbedding = await this.openai.generateEmbeddings(jd);
+
+    const aggregationPipeline = [
+      {
+        $vectorSearch: {
+          index: 'vector_index',
+          path: 'embeddings',
+          queryVector: jdEmbedding,
+          limit: 1000, // Adjust based on your data size and performance needs
+          numCandidates: 1000,
+        },
+      },
+      {
+        $sort: {
+          score: -1, // Sort by score in descending order
+        },
+      },
+      {
+        $group: {
+          _id: '$userId',
+          topMatch: { $first: '$$ROOT' },
+          score: { $first: { $meta: 'vectorSearchScore' } },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: [
+              '$topMatch',
+              {
+                score: {
+                  $round: [
+                    { $multiply: ['$score', 100] },
+                    0, // 0 decimal places
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      },
+      {
+        $sort: {
+          score: -1, // Sort again to get the overall top matches
+        },
+      },
+    ];
+
+    // Execute the aggregation pipeline to get the total count
+    const countResult = await this.resumeModel.aggregate([
+      ...(aggregationPipeline as never),
+      { $count: 'totalCount' },
+    ]);
+
+    const totalCount = countResult.length > 0 ? countResult[0].totalCount : 0;
+
+    // Execute the aggregation pipeline with pagination
+    const results = await this.resumeModel.aggregate([
+      ...(aggregationPipeline as never),
+      { $skip: (page - 1) * pageSize },
+      { $limit: pageSize },
+      {
+        $project: {
+          _id: 1,
+          userId: 1,
+          score: 1,
+        },
+      },
+    ]);
+
+    return {
+      results,
+      pagination: {
+        currentPage: page,
+        pageSize: pageSize,
+        totalCount: totalCount,
+        totalPages: Math.ceil(totalCount / pageSize),
+      },
+    };
   }
 }

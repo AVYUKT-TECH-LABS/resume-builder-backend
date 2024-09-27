@@ -15,6 +15,8 @@ import { Resume as ResumeType } from '../types/index';
 import { deductCredits, hasCredits } from '../utils/credits';
 import shortId from '../utils/shortid';
 import { UpdateResumeDto } from './dto/update-resume.dto';
+import natural from 'natural';
+import { english as stopwords } from 'stopwords';
 
 @Injectable()
 export class ResumeService {
@@ -211,6 +213,34 @@ export class ResumeService {
     return {
       upload_id: upload._id,
     };
+  }
+
+  private extractKeywords(text) {
+    // Tokenize the text
+    const tokenizer = new natural.WordTokenizer();
+    let tokens = tokenizer.tokenize(text.toLowerCase());
+
+    // Remove stopwords
+    tokens = tokens.filter((token) => !stopwords.includes(token));
+
+    // Remove non-alphabetic tokens and short tokens
+    tokens = tokens.filter(
+      (token) => /^[a-z]+$/.test(token) && token.length > 2,
+    );
+
+    // Count frequency of each token
+    const frequency = {};
+    tokens.forEach((token) => {
+      frequency[token] = (frequency[token] || 0) + 1;
+    });
+
+    // Sort tokens by frequency
+    const sortedTokens = Object.entries(frequency)
+      .sort((a, b) => (b[1] as number) - (a[1] as number))
+      .map((entry) => entry[0]);
+
+    // Return top 20 keywords
+    return sortedTokens.slice(0, 20);
   }
 
   public async extractText(file: Express.Multer.File) {

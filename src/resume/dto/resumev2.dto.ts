@@ -265,6 +265,12 @@ export class CreateResumeDTO {
   @ArrayMinSize(0)
   @ArrayMaxSize(50)
   skills: string[];
+
+  @IsArray()
+  embeddings: number[];
+
+  @IsString()
+  plainText: string;
 }
 
 export class UpdateResumeDTO implements Partial<CreateResumeDTO> {
