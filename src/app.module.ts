@@ -3,17 +3,21 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { CloudModule } from './cloud/cloud.module';
-import clerkConfig from './config/clerk.config';
 import { IpInfoModule } from './ip-info/ip-info.module';
+// import { JobPortalModule } from './job-portal/job-portal.module';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthModule } from './auth/auth.module';
 import clerkConfig from './config/clerk.config';
-import { IpInfoModule } from './ip-info/ip-info.module';
-import { JobPortalModule } from './job-portal/job-portal.module';
+import { EmployerModule } from './employer/employer.module';
 import { JobsModule } from './jobs/jobs.module';
 import { LinkedinOptimizerModule } from './linkedin-optimizer/linkedin-optimizer.module';
+import { NotificationModule } from './notification/notification.module';
+import { NotificationService } from './notification/notification.service';
 import { OpenAIModule } from './openai/openai.module';
 import { PaymentsModule } from './payments/payments.module';
-import { ResumeModule } from './resume/resume.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ResumeModule } from './resume/resume.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -32,8 +36,12 @@ import { PrismaModule } from './prisma/prisma.module';
     LinkedinOptimizerModule,
     NotificationModule,
     IpInfoModule,
-    JobPortalModule,
+    // JobPortalModule,
     PrismaModule,
+    AuthModule,
+    EmployerModule,
+    UsersModule,
+    JwtModule,
   ],
   controllers: [AppController],
   providers: [NotificationService],

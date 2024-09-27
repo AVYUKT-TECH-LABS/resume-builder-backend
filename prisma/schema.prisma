@@ -11,33 +11,41 @@ model User {
   id           String        @id @default(uuid())
   email        String        @unique
   name         String
+  password     String?
+  provider_id  String?       @unique
+  provider     AuthProvider  @default(EMAIL_PASSWORD)
   applications Application[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
 
   @@index([email])
 }
 
 model Organization {
-  id        String     @id @default(uuid())
-  name      String
-  employers Employer[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id         String     @id @default(uuid())
+  name       String
+  employers  Employer[]
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
 
   @@index([name])
 }
 
 model Employer {
-  id             String       @id @default(uuid())
-  name           String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  organizationId String
-  jobs           Job[]
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id              String        @id @default(uuid())
+  email           String        @unique
+  name            String
+  password        String?
+  provider_id     String?       @unique
+  provider        AuthProvider  @default(EMAIL_PASSWORD)
+  organization    Organization? @relation(fields: [organization_id], references: [id])
+  organization_id String?
+  jobs            Job[]
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
 
-  @@index([organizationId])
+  @@index([organization_id])
+  @@index([email])
 }
 
 model Job {
@@ -74,8 +82,8 @@ model Job {
   walk_in_timings       String?
   other_instructions    String?
   online_interview_link String?
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
+  created_at            DateTime         @default(now())
+  updated_at            DateTime         @updatedAt
   applications          Application[]
 
   @@index([employerId])
@@ -91,8 +99,8 @@ model Application {
   last_updated       DateTime
   resume_id          String
   cover_letter       String?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
+  created_at         DateTime          @default(now())
+  updated_at         DateTime          @updatedAt
 
   @@index([userId])
   @@index([jobId])
@@ -107,8 +115,8 @@ model Order {
   amount     String
   currency   String
   status     String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@index([userId])
   @@index([planId])
@@ -122,8 +130,14 @@ model Plan {
   credits        Int
   description    String?
   isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+}
+
+enum AuthProvider {
+  EMAIL_PASSWORD
+  GOOGLE
+  LINKEDIN
 }
 
 enum ApplicationStatus {
