@@ -21,29 +21,77 @@ model User {
 }
 
 model Organization {
-  id         String     @id @default(uuid())
-  name       String
-  employers  Employer[]
-  created_at DateTime   @default(now())
-  updated_at DateTime   @updatedAt
+  id               String             @id @default(uuid())
+  name             String
+  display_name     String             @default("")
+  logo_url         String
+  description      String
+  city             String
+  industry         String
+  num_employees    String
+  website          String
+  is_deleted       Boolean            @default(false)
+  is_verified      Boolean            @default(false)
+  org_reviews      org_reviews[]
+  org_social_links org_social_links[]
+  jobs             Job[]
+  isSubscribed     Boolean            @default(false)
+  listingsLeft     Int                @default(2)
+  mailDomain       String?            @unique
+  lastListingDate  DateTime?
+  employers        Employer[]
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @updatedAt
+  deleted_at       DateTime?
 
   @@index([name])
 }
 
 model Employer {
-  id              String        @id @default(uuid())
-  email           String        @unique
-  name            String
-  provider_id     String?       @unique
-  provider        AuthProvider  @default(EMAIL_PASSWORD)
-  organization    Organization? @relation(fields: [organization_id], references: [id])
-  organization_id String?
-  jobs            Job[]
-  created_at      DateTime      @default(now())
-  updated_at      DateTime      @updatedAt
+  id               String        @id @default(uuid())
+  email            String        @unique
+  name             String
+  provider_id      String?       @unique
+  provider         AuthProvider  @default(EMAIL_PASSWORD)
+  organization     Organization? @relation(fields: [organization_id], references: [id])
+  organization_id  String?
+  jobs             Job[]
+  is_deleted       Boolean       @default(false)
+  deletion_message String?       @default("")
+  is_verified      Boolean       @default(false)
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+  deleted_at       DateTime?
 
   @@index([organization_id])
   @@index([email])
+}
+
+//org reviews
+model org_reviews {
+  id              String       @id @default(uuid())
+  review          String
+  rating          Int
+  is_deleted      Boolean      @default(false)
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
+  deleted_at      DateTime?
+  organization    Organization @relation(fields: [organization_id], references: [id])
+  organization_id String
+}
+
+model org_social_links {
+  //org_social_links
+  id              String       @id @default(uuid())
+  facebook        String?
+  twitter         String?
+  instagram       String?
+  linkedin        String?
+  youtube         String?
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
+  organization    Organization @relation(fields: [organization_id], references: [id])
+  organization_id String
 }
 
 model Job {
@@ -83,8 +131,19 @@ model Job {
   created_at            DateTime         @default(now())
   updated_at            DateTime         @updatedAt
   applications          Application[]
+  Organization          Organization     @relation(fields: [organizationId], references: [id])
+  organizationId        String
 
   @@index([employerId])
+}
+
+model AggregatedJob {
+  id       String @id
+  title    String
+  company  String
+  location String
+  link     String
+  platform String
 }
 
 model Application {
