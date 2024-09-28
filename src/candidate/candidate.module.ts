@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { CandidateController } from './candidate.controller';
 import { CandidateService } from './candidate.service';
+import { JobsModule } from '../jobs/jobs.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { CandidateService } from './candidate.service';
       }),
       inject: [ConfigService],
     }),
+    JobsModule,
   ],
   controllers: [CandidateController],
   providers: [CandidateService],

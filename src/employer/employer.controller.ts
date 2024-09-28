@@ -106,11 +106,11 @@ export class EmployerController {
     return this.employerService.addJob(req.employer.id, body);
   }
 
-  @Get('/job/candidates/:id')
+  @Get('/job/candidates/:jobId')
   @UseGuards(EmployerJwtAuthGuard)
   @UseGuards(OnboardingGuard)
-  async getCandidates(@Req() req: Request, @Param('id') id: string) {
-    return this.employerService.getCandidates(req.employer.id, id);
+  async getCandidates(@Req() req: Request, @Param('jobId') jobId: string) {
+    return this.employerService.getCandidates(req.employer.id, jobId);
   }
 
   @Patch('/job/candidates/:id')

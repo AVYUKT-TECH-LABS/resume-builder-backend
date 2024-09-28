@@ -254,4 +254,18 @@ export class JobsService {
       this.logger.error('Failed to save bulk jobs', error);
     }
   }
+
+  async get() {
+    try {
+      const jobs = await this.prisma.aggregatedJob.findMany({
+        skip: 0,
+        take: 40,
+      });
+
+      return jobs;
+    } catch (err) {
+      this.logger.log(err);
+      throw err;
+    }
+  }
 }

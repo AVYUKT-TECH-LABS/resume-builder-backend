@@ -221,6 +221,8 @@ export class EmployerService {
             id: true,
             name: true,
             email: true,
+            hasImage: true,
+            imageUrl: true,
           },
         },
         id: true,
