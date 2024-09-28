@@ -10,14 +10,14 @@ import { User } from '@prisma/client';
 
 import { Request } from 'express';
 import { UserType } from 'src/auth/types/index.type';
-import { CandidateService } from 'src/candidate/candidate.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class CandidateJwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly candidateService: CandidateService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async canActivate(context: ExecutionContext) {
@@ -35,13 +35,27 @@ export class CandidateJwtAuthGuard implements CanActivate {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
 
-      let candidate: User | null = null;
+      let candidate: Partial<User> | null = null;
 
       if (payload.role !== UserType.CANDIDATE) {
         return false;
       }
 
-      candidate = await this.candidateService.findUserByEmail(payload.sub);
+      candidate = await this.prisma.user.findFirst({
+        where: {
+          email: payload.sub,
+        },
+        select: {
+          name: true,
+          email: true,
+          id: true,
+          clerkId: true,
+          credits: true,
+          created_at: true,
+          updated_at: true,
+          provider: true,
+        },
+      });
 
       request.candidate = candidate;
       return true;

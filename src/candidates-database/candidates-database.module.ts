@@ -9,9 +9,11 @@ import {
   JobEmbeddings,
   JobEmbeddingsSchema,
 } from '../schemas/job-embeddings.schema';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
+    JwtModule,
     PrismaModule,
     OpenAIModule,
     MongooseModule.forFeature([

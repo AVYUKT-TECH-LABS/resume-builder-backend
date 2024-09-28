@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { OpenAiService } from '../openai/openai.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JobEmbeddings } from '../schemas/job-embeddings.schema';
+import { z } from 'zod';
 
 @Injectable()
 export class CandidatesDatabaseService {
@@ -102,6 +103,7 @@ export class CandidatesDatabaseService {
     data: { _id: string; userId: string; score: number }[],
   ) {
     const userIds = data.map((item) => item.userId);
+    const resumeIds = data.map((item) => item._id);
 
     try {
       const users = await this.prisma.user.findMany({
@@ -109,6 +111,14 @@ export class CandidatesDatabaseService {
           id: {
             in: userIds,
           },
+          banned: false,
+          locked: false,
+        },
+        select: {
+          hasImage: true,
+          imageUrl: true,
+          id: true,
+          name: true,
         },
       });
 
@@ -120,20 +130,42 @@ export class CandidatesDatabaseService {
         {} as Record<string, any>,
       );
 
-      const sampleUser = {
-        name: 'S. W.',
-        avatar: '/placeholder.svg?height=40&width=40',
-        experience: '8 years',
-        description:
-          'Led K-7 curriculum innovation and improvement at Ubuntu Pathways.',
-        expertise: ['Data Analysis', 'Team Collaboration', 'Leadership'],
-        commitment: 'Full-time',
-      };
+      const resumes = await this.resumeModel.find(
+        {
+          _id: {
+            $in: resumeIds,
+          },
+        },
+        {
+          _id: 1,
+          'sections.summary': 1,
+          'sections.skills': 1,
+        },
+      );
+
+      const resumeMap = resumes.reduce(
+        (acc, resume) => {
+          acc[resume._id.toString()] = resume;
+          return acc;
+        },
+        {} as Record<string, any>,
+      );
+
+      // const sampleUser = {
+      //   name: 'S. W.',
+      //   avatar: '/placeholder.svg?height=40&width=40',
+      //   experience: '8 years',
+      //   description:
+      //     'Led K-7 curriculum innovation and improvement at Ubuntu Pathways.',
+      //   expertise: ['Data Analysis', 'Team Collaboration', 'Leadership'],
+      //   commitment: 'Full-time',
+      // };
 
       const result = data.map((item) => ({
         ...item,
-        // user: userMap[item.userId] || null,
-        user: sampleUser,
+        user: userMap[item.userId] || null,
+        // user: sampleUser,
+        resume: resumeMap[item._id] || null,
       }));
 
       return result;
@@ -141,6 +173,30 @@ export class CandidatesDatabaseService {
       console.error('Error fetching users: ', error);
       throw error;
     }
+  }
+
+  async summary(resumeId: string, query: string) {
+    const resume = await this.resumeModel.findById(resumeId, {
+      plainText: 1,
+    });
+    const generatedSummary = await this.openai.generateResponse(
+      'You are given a resume in plain text along with a query, your task is to return a brief summary of weather the resume matches the query or not.',
+      `
+      query: ${query}
+
+      input: ${resume.plainText}
+      `,
+      {
+        name: 'summary-formatter',
+        schema: z.object({
+          summary: z
+            .string()
+            .describe('Your analysis. Keep this well within 100 characters'),
+        }),
+      },
+    );
+
+    return generatedSummary;
   }
 
   async vectorSearch(

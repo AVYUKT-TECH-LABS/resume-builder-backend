@@ -18,6 +18,13 @@ model User {
   credits      Int           @default(0)
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
+  Order        Order[]
+  imageUrl     String?
+  banned       Boolean       @default(false)
+  locked       Boolean       @default(false)
+  hasImage     Boolean       @default(false)
+  lastSignInAt DateTime?
+  lastActiveAt DateTime?
 
   @@index([email])
   @@index([id])
@@ -65,6 +72,12 @@ model Employer {
   updated_at       DateTime      @updatedAt
   deleted_at       DateTime?
   clerkId          String?       @unique
+  imageUrl         String?
+  banned           Boolean       @default(false)
+  locked           Boolean       @default(false)
+  hasImage         Boolean       @default(false)
+  lastSignInAt     DateTime?
+  lastActiveAt     DateTime?
 
   @@index([organization_id])
   @@index([email])
@@ -173,6 +186,7 @@ model Application {
 model Order {
   id         String   @id @default(cuid())
   userId     String
+  user       User     @relation(fields: [userId], references: [id])
   planId     String
   pg_orderId String   @unique
   pg         String

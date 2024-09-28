@@ -1,4 +1,3 @@
-import { clerkClient } from '@clerk/clerk-sdk-node';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
@@ -35,7 +34,7 @@ export class PaymentsService {
           ipAddr,
         );
         return {
-          ...plan, // Convert Mongoose document to a plain JavaScript object
+          ...plan,
           amount: details.adjustedPrice,
           display_amount: `${details.currency.symbol}${details.adjustedPrice / Math.pow(10, details.exponent)}`,
         };
@@ -48,7 +47,11 @@ export class PaymentsService {
   async createOrder(planName: string, userId: string, ip: string) {
     const [plan, user] = await Promise.all([
       this.getPlan(planName),
-      clerkClient.users.getUser(userId),
+      this.prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+      }),
     ]);
 
     if (!user)
@@ -77,9 +80,9 @@ export class PaymentsService {
         env: this.configService.get<string>('NODE_ENV'),
       },
       customer_details: {
-        name: user.fullName,
-        email: user.emailAddresses[0]?.emailAddress,
-        contact: user.phoneNumbers[0]?.phoneNumber,
+        name: user.name,
+        email: user.email,
+        contact: null,
         shipping_address: null,
         billing_address: null,
       },
@@ -115,13 +118,17 @@ export class PaymentsService {
   }) {
     return this.prisma.order.create({
       data: {
-        userId,
         planId,
         pg_orderId: orderId,
         pg,
         amount,
         currency,
         status,
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
       },
     });
   }
@@ -205,12 +212,20 @@ export class PaymentsService {
           return 'PLAN_NOT_FOUND';
         }
 
-        const user = await clerkClient.users.getUser(updatedOrder.userId);
-        const updatedCredits =
-          Number(user.publicMetadata.credits || 0) + plan.credits;
+        const user = await this.prisma.user.findUnique({
+          where: {
+            id: updatedOrder.userId,
+          },
+        });
+        const updatedCredits = Number(user.credits || 0) + plan.credits;
 
-        await clerkClient.users.updateUserMetadata(updatedOrder.userId, {
-          publicMetadata: { credits: updatedCredits },
+        await this.prisma.user.update({
+          where: {
+            id: updatedOrder.userId,
+          },
+          data: {
+            credits: updatedCredits,
+          },
         });
 
         return 'SUCCESS';

@@ -1,13 +1,17 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Get,
   InternalServerErrorException,
   Logger,
   Param,
+  Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CandidatesDatabaseService } from './candidates-database.service';
+import { EmployerJwtAuthGuard } from '../guards/employer.auth.guard';
 
 interface PaginatedResponse<T> {
   data: T[];
@@ -24,6 +28,7 @@ export class CandidatesDatabaseController {
   private logger: Logger = new Logger(CandidatesDatabaseController.name);
   constructor(private candidatesDBService: CandidatesDatabaseService) {}
 
+  @UseGuards(EmployerJwtAuthGuard)
   @Get('recommended/:jobId')
   async getRecommended(
     @Param('jobId') jobId: string,
@@ -61,6 +66,7 @@ export class CandidatesDatabaseController {
     }
   }
 
+  @UseGuards(EmployerJwtAuthGuard)
   @Get('search')
   async searchCandidates(
     @Query('q') query: string,
@@ -95,5 +101,11 @@ export class CandidatesDatabaseController {
       if (error instanceof BadRequestException) throw error;
       throw new InternalServerErrorException(error);
     }
+  }
+
+  @UseGuards(EmployerJwtAuthGuard)
+  @Post('summary')
+  async summary(@Body() body: { resumeId: string; query: string }) {
+    return this.candidatesDBService.summary(body.resumeId, body.query);
   }
 }

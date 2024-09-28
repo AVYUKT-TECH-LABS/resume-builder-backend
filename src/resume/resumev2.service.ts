@@ -23,10 +23,16 @@ export class ResumeServiceV2 {
 
   async get(resumeId: string, userId?: string | undefined) {
     try {
-      const resume = await this.resumeModel.findOne({
-        _id: resumeId,
-        ...(userId && { userId }),
-      });
+      const resume = await this.resumeModel.findOne(
+        {
+          _id: resumeId,
+          ...(userId && { userId }),
+        },
+        {
+          embeddings: 0,
+          plainText: 0,
+        },
+      );
 
       if (!resume) throw new NotFoundException('Resume not found');
 

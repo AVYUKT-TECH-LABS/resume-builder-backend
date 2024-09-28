@@ -34,13 +34,27 @@ export class MigrationsController {
               name: `${clerkUser.firstName} ${clerkUser.lastName}`,
               clerkId: clerkUser.id,
               provider: AuthProvider.EMAIL_PASSWORD,
+              hasImage: clerkUser.hasImage,
+              imageUrl: clerkUser.imageUrl,
+              banned: clerkUser.banned,
+              locked: clerkUser.locked,
+              lastActiveAt: new Date(clerkUser.lastActiveAt),
+              lastSignInAt: new Date(clerkUser.lastSignInAt),
             },
           });
         } else {
           // Update existing user with Clerk ID
           await this.prisma.employer.update({
             where: { id: existingUser.id },
-            data: { clerkId: clerkUser.id },
+            data: {
+              clerkId: clerkUser.id,
+              hasImage: clerkUser.hasImage,
+              imageUrl: clerkUser.imageUrl,
+              banned: clerkUser.banned,
+              locked: clerkUser.locked,
+              lastActiveAt: new Date(clerkUser.lastActiveAt),
+              lastSignInAt: new Date(clerkUser.lastSignInAt),
+            },
           });
         }
       } else {
@@ -58,13 +72,27 @@ export class MigrationsController {
               clerkId: clerkUser.id,
               provider: AuthProvider.EMAIL_PASSWORD,
               credits: clerkUser.publicMetadata.credits as number,
+              hasImage: clerkUser.hasImage,
+              imageUrl: clerkUser.imageUrl,
+              banned: clerkUser.banned,
+              locked: clerkUser.locked,
+              lastActiveAt: new Date(clerkUser.lastActiveAt),
+              lastSignInAt: new Date(clerkUser.lastSignInAt),
             },
           });
         } else {
           // Update existing user with Clerk ID
           await this.prisma.user.update({
             where: { id: existingUser.id },
-            data: { clerkId: clerkUser.id },
+            data: {
+              clerkId: clerkUser.id,
+              hasImage: clerkUser.hasImage,
+              imageUrl: clerkUser.imageUrl,
+              banned: clerkUser.banned,
+              locked: clerkUser.locked,
+              lastActiveAt: new Date(clerkUser.lastActiveAt),
+              lastSignInAt: new Date(clerkUser.lastSignInAt),
+            },
           });
         }
       }
