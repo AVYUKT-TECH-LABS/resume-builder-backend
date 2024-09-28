@@ -5,4 +5,4 @@
 
 */
 -- AlterTable
-ALTER TABLE `job` DROP COLUMN `embeddings`;
+ALTER TABLE `Job` DROP COLUMN `embeddings`;

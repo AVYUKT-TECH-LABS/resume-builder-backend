@@ -5,7 +5,7 @@
 
 */
 -- AlterTable
-ALTER TABLE `job` MODIFY `jd` VARCHAR(191) NOT NULL,
+ALTER TABLE `Job` MODIFY `jd` VARCHAR(191) NOT NULL,
     MODIFY `regional_languages` VARCHAR(191) NULL,
     MODIFY `required_assets` VARCHAR(191) NULL,
     MODIFY `skills` VARCHAR(191) NULL;
