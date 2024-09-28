@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from 'src/prisma/prisma.module';
-import { EmployerController } from './employer.controller';
-import { EmployerService } from './employer.service';
+import { CandidateController } from './candidate.controller';
+import { CandidateService } from './candidate.service';
 
 @Module({
   imports: [
@@ -16,8 +16,8 @@ import { EmployerService } from './employer.service';
       inject: [ConfigService],
     }),
   ],
-  controllers: [EmployerController],
-  providers: [EmployerService],
-  exports: [EmployerService],
+  controllers: [CandidateController],
+  providers: [CandidateService],
+  exports: [CandidateService],
 })
-export class EmployerModule {}
+export class CandidateModule {}

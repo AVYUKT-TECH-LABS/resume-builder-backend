@@ -6,7 +6,9 @@ import { CloudModule } from './cloud/cloud.module';
 import { IpInfoModule } from './ip-info/ip-info.module';
 // import { JobPortalModule } from './job-portal/job-portal.module';
 import { JwtModule } from '@nestjs/jwt';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
+import { CandidateModule } from './candidate/candidate.module';
 import clerkConfig from './config/clerk.config';
 import { EmployerModule } from './employer/employer.module';
 import { JobsModule } from './jobs/jobs.module';
@@ -17,8 +19,6 @@ import { OpenAIModule } from './openai/openai.module';
 import { PaymentsModule } from './payments/payments.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ResumeModule } from './resume/resume.module';
-import { UsersModule } from './users/users.module';
-import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -41,9 +41,10 @@ import { ScheduleModule } from '@nestjs/schedule';
     PrismaModule,
     AuthModule,
     EmployerModule,
-    UsersModule,
+    CandidateModule,
     JwtModule,
     ScheduleModule.forRoot(),
+    CandidateModule,
   ],
   controllers: [AppController],
   providers: [NotificationService],

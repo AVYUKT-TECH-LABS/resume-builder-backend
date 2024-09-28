@@ -1,26 +1,20 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { CandidateModule } from 'src/candidate/candidate.module';
 import { EmployerModule } from 'src/employer/employer.module';
 import { NotificationModule } from 'src/notification/notification.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
+import { MagicLoginStrategy } from 'src/strategy/magiclink.strategy';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { MagicLoginStrategy } from './strategy/magiclink.strategy';
 
 @Module({
   imports: [
     EmployerModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-      }),
-      inject: [ConfigService],
-    }),
+    CandidateModule,
     PrismaModule,
     NotificationModule,
-    ConfigModule,
+    JwtModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, MagicLoginStrategy],
