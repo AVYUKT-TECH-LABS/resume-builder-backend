@@ -21,7 +21,6 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ResumeModule } from './resume/resume.module';
 import { CandidatesDatabaseModule } from './candidates-database/candidates-database.module';
 import { ResumeProcessorModule } from './resume-processor/resume-processor.module';
-import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [

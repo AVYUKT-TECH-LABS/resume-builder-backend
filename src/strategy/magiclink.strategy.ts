@@ -30,7 +30,7 @@ export class MagicLoginStrategy extends PassportStrategy(
         req: Request,
       ) => {
         href += `&role=${req.body.usertype}`;
-
+        console.log(href);
         this.notificationService.sendMail('emails-queue', {
           body: `This is your magic login link: ${href}`,
           subject: `Magic Link Login`,

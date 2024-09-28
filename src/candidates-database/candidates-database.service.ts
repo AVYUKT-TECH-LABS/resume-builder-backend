@@ -4,6 +4,7 @@ import { ResumeV2 } from '../schemas/resume.schema.v2';
 import { Model } from 'mongoose';
 import { OpenAiService } from '../openai/openai.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { JobEmbeddings } from '../schemas/job-embeddings.schema';
 
 @Injectable()
 export class CandidatesDatabaseService {
@@ -12,6 +13,8 @@ export class CandidatesDatabaseService {
     @InjectModel(ResumeV2.name) private resumeModel: Model<ResumeV2>,
     private openai: OpenAiService,
     private prisma: PrismaService,
+    @InjectModel(JobEmbeddings.name)
+    private jobEmbeddingsModel: Model<JobEmbeddings>,
   ) {}
 
   async getRecommendedCandidatesForJob(
@@ -21,20 +24,13 @@ export class CandidatesDatabaseService {
   ) {
     try {
       //get saved embeddings for the job
-      const job = await this.prisma.job.findUnique({
-        where: {
-          id: jobId,
-        },
-        select: {
-          embeddings: true,
-        },
+      const job = await this.jobEmbeddingsModel.findOne({
+        jobId,
       });
-
-      const embeddings: number[] = JSON.parse(job.embeddings);
 
       //Do a vector search
       const vectorResponse = await this.vectorSearch(
-        embeddings,
+        job.embeddings,
         page,
         pageSize,
       );
@@ -80,20 +76,13 @@ export class CandidatesDatabaseService {
   async getScore(userId: string, resumeId: string, jobId: string) {
     try {
       //get saved embeddings for the job
-      const job = await this.prisma.job.findUnique({
-        where: {
-          id: jobId,
-        },
-        select: {
-          embeddings: true,
-        },
+      const job = await this.jobEmbeddingsModel.findOne({
+        jobId,
       });
-
-      const embeddings: number[] = JSON.parse(job.embeddings);
 
       //Do a vector search
       const { results: applicationScores } = await this.vectorSearch(
-        embeddings,
+        job.embeddings,
         1,
         1,
         {
@@ -131,9 +120,20 @@ export class CandidatesDatabaseService {
         {} as Record<string, any>,
       );
 
+      const sampleUser = {
+        name: 'S. W.',
+        avatar: '/placeholder.svg?height=40&width=40',
+        experience: '8 years',
+        description:
+          'Led K-7 curriculum innovation and improvement at Ubuntu Pathways.',
+        expertise: ['Data Analysis', 'Team Collaboration', 'Leadership'],
+        commitment: 'Full-time',
+      };
+
       const result = data.map((item) => ({
         ...item,
-        user: userMap[item.userId] || null,
+        // user: userMap[item.userId] || null,
+        user: sampleUser,
       }));
 
       return result;

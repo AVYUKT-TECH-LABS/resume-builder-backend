@@ -5,6 +5,10 @@ import { OpenAIModule } from '../openai/openai.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ResumeSchemaV2, ResumeV2 } from '../schemas/resume.schema.v2';
 import { PrismaModule } from '../prisma/prisma.module';
+import {
+  JobEmbeddings,
+  JobEmbeddingsSchema,
+} from '../schemas/job-embeddings.schema';
 
 @Module({
   imports: [
@@ -12,6 +16,9 @@ import { PrismaModule } from '../prisma/prisma.module';
     OpenAIModule,
     MongooseModule.forFeature([
       { name: ResumeV2.name, schema: ResumeSchemaV2 },
+    ]),
+    MongooseModule.forFeature([
+      { name: JobEmbeddings.name, schema: JobEmbeddingsSchema },
     ]),
   ],
   controllers: [CandidatesDatabaseController],

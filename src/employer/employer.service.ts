@@ -5,10 +5,19 @@ import { EmailSignupDto } from './dto/email.signup.dto';
 import { OnBoardingDto } from './dto/onBoardDto.dto';
 import { UpdateJobApplicationDto } from './dto/update-job-application.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
+import { OpenAiService } from '../openai/openai.service';
+import { InjectModel } from '@nestjs/mongoose';
+import { JobEmbeddings } from '../schemas/job-embeddings.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class EmployerService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    @InjectModel(JobEmbeddings.name)
+    private jobEmbeddingsModel: Model<JobEmbeddings>,
+    private prismaService: PrismaService,
+    private openai: OpenAiService,
+  ) {}
 
   async createEmployeeWithoutCompany(data: EmailSignupDto) {
     return this.prismaService.employer.create({
@@ -119,7 +128,11 @@ export class EmployerService {
       throw new NotFoundException('Employer or Organization not found');
     }
 
-    await this.prismaService.job.create({
+    //generate embeddings for this job
+    const flattenJob = this.flattenJobDto(body);
+    const embeddings = await this.openai.generateEmbeddings(flattenJob);
+
+    const createdJob = await this.prismaService.job.create({
       data: {
         ...body,
         company_name: employer.organization.name,
@@ -130,6 +143,12 @@ export class EmployerService {
           connect: { id: employer.organization.id },
         },
       },
+    });
+
+    //save embeddings
+    await this.jobEmbeddingsModel.create({
+      embeddings,
+      jobId: createdJob.id,
     });
 
     return {
@@ -232,5 +251,86 @@ export class EmployerService {
         application_status: body.application_status,
       },
     });
+  }
+
+  flattenJobDto(jobDto: CreateJobDto): string {
+    const {
+      status,
+      job_title,
+      job_type,
+      is24_7,
+      work_location_type,
+      pay_type,
+      fixed_salary,
+      avg_incentive,
+      perks,
+      joining_fee_required,
+      joining_fee,
+      minimum_edu,
+      english_level,
+      experience_level,
+      total_experience,
+      gender,
+      age,
+      regional_languages,
+      required_assets,
+      skills,
+      jd,
+      interview_type,
+      interview_address,
+      walk_in_start_date,
+      walk_in_end_date,
+      walk_in_timings,
+      other_instructions,
+      online_interview_link,
+    } = jobDto;
+
+    // Basic job details
+    let jobDetails = `Job Title: ${job_title}\n`;
+    jobDetails += `Status: ${status}\n`;
+    jobDetails += `Job Type: ${job_type}\n`;
+    jobDetails += `24/7: ${is24_7 ? 'Yes' : 'No'}\n`;
+    jobDetails += `Location Type: ${work_location_type}\n`;
+
+    // Salary and perks
+    if (fixed_salary) jobDetails += `Fixed Salary: ${fixed_salary}\n`;
+    if (avg_incentive) jobDetails += `Avg Incentive: ${avg_incentive}\n`;
+    if (perks && perks.length) jobDetails += `Perks: ${perks}\n`;
+    jobDetails += `Pay Type: ${pay_type}\n`;
+    jobDetails += `Joining Fee Required: ${joining_fee_required ? 'Yes' : 'No'}\n`;
+    if (joining_fee) jobDetails += `Joining Fee: ${joining_fee}\n`;
+
+    // Candidate requirements
+    jobDetails += `Minimum Education: ${minimum_edu}\n`;
+    jobDetails += `English Level: ${english_level}\n`;
+    jobDetails += `Experience Level: ${experience_level}\n`;
+    if (total_experience)
+      jobDetails += `Total Experience: ${total_experience}\n`;
+    if (gender) jobDetails += `Gender: ${gender}\n`;
+    if (age) jobDetails += `Age: ${age}\n`;
+    if (regional_languages && regional_languages.length)
+      jobDetails += `Languages: ${regional_languages}\n`;
+    if (required_assets && required_assets.length)
+      jobDetails += `Required Assets: ${required_assets}\n`;
+    if (skills && skills.length) jobDetails += `Skills: ${skills}\n`;
+
+    // Job description
+    jobDetails += `Job Description: ${jd}\n`;
+
+    // Interview details
+    jobDetails += `Interview Type: ${interview_type}\n`;
+    if (interview_address)
+      jobDetails += `Interview Address: ${interview_address}\n`;
+    if (walk_in_start_date)
+      jobDetails += `Walk-in Start Date: ${walk_in_start_date}\n`;
+    if (walk_in_end_date)
+      jobDetails += `Walk-in End Date: ${walk_in_end_date}\n`;
+    if (walk_in_timings) jobDetails += `Walk-in Timings: ${walk_in_timings}\n`;
+    if (other_instructions)
+      jobDetails += `Other Instructions: ${other_instructions}\n`;
+    if (online_interview_link)
+      jobDetails += `Online Interview Link: ${online_interview_link}\n`;
+
+    return jobDetails.trim();
   }
 }
