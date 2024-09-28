@@ -39,7 +39,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     LinkedinOptimizerModule,
     NotificationModule,
     IpInfoModule,
-    JobPortalModule,
+    // JobPortalModule,
     CandidatesDatabaseModule,
     ResumeProcessorModule,
     // JobPortalModule,
