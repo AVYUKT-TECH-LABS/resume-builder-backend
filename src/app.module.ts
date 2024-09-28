@@ -21,6 +21,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ResumeModule } from './resume/resume.module';
 import { CandidatesDatabaseModule } from './candidates-database/candidates-database.module';
 import { ResumeProcessorModule } from './resume-processor/resume-processor.module';
+import { MigrationsModule } from './migrations/migrations.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ResumeProcessorModule } from './resume-processor/resume-processor.modul
     JwtModule,
     ScheduleModule.forRoot(),
     CandidateModule,
+    MigrationsModule,
   ],
   controllers: [AppController],
   providers: [NotificationService],

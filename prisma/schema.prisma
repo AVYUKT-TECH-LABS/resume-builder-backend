@@ -12,12 +12,15 @@ model User {
   email        String        @unique
   name         String
   provider_id  String?       @unique
+  clerkId      String?       @unique
   provider     AuthProvider  @default(EMAIL_PASSWORD)
   applications Application[]
+  credits      Int           @default(0)
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
 
   @@index([email])
+  @@index([id])
 }
 
 model Organization {
@@ -61,6 +64,7 @@ model Employer {
   created_at       DateTime      @default(now())
   updated_at       DateTime      @updatedAt
   deleted_at       DateTime?
+  clerkId          String?       @unique
 
   @@index([organization_id])
   @@index([email])
