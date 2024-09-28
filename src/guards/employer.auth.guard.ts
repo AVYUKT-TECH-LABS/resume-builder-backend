@@ -37,9 +37,11 @@ export class EmployerJwtAuthGuard implements CanActivate {
 
       let employer: Employer | null = null;
 
-      if (payload.role === UserType.EMPLOYER) {
-        employer = await this.employerService.findEmployeeByEmail(payload.sub);
+      if (payload.role !== UserType.EMPLOYER) {
+        return false;
       }
+
+      employer = await this.employerService.findEmployeeByEmail(payload.sub);
 
       request.employer = employer;
       return true;

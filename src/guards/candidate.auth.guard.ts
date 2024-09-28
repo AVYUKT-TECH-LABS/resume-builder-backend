@@ -35,13 +35,15 @@ export class CandidateJwtAuthGuard implements CanActivate {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
 
-      let user: User | null = null;
+      let candidate: User | null = null;
 
-      if (payload.role === UserType.USER) {
-        user = await this.candidateService.findUserByEmail(payload.sub);
+      if (payload.role !== UserType.CANDIDATE) {
+        return false;
       }
 
-      request.user = user;
+      candidate = await this.candidateService.findUserByEmail(payload.sub);
+
+      request.candidate = candidate;
       return true;
     } catch (err) {
       throw new UnauthorizedException('Invalid token, Kindly Login!');

@@ -1,10 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { ExperienceLevel, JobType, Prisma } from '@prisma/client';
+import { CandidateEmailSignupDto } from 'src/employer/dto/email.signup.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class CandidateService {
   constructor(private prismaService: PrismaService) {}
+
+  async create(data: CandidateEmailSignupDto) {
+    return this.prismaService.user.create({
+      data: {
+        ...data,
+        provider: 'EMAIL_PASSWORD',
+      },
+    });
+  }
 
   async findUserByEmail(email: string) {
     return this.prismaService.user.findFirst({
@@ -69,7 +79,35 @@ export class CandidateService {
     }
 
     return this.prismaService.job.findMany({
-      where,
+      where: {
+        ...where,
+        is_deleted: false,
+      },
+    });
+  }
+
+  async getJob(jobId: string) {
+    return this.prismaService.job.findFirst({
+      where: {
+        id: jobId,
+        is_deleted: false,
+      },
+      include: {
+        Organization: {
+          select: {
+            id: true,
+            description: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getApplications(candidateId: string) {
+    return this.prismaService.application.findMany({
+      where: {
+        userId: candidateId,
+      },
     });
   }
 }
