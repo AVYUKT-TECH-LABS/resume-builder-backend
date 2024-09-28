@@ -22,6 +22,7 @@ import { ResumeModule } from './resume/resume.module';
 import { CandidatesDatabaseModule } from './candidates-database/candidates-database.module';
 import { ResumeProcessorModule } from './resume-processor/resume-processor.module';
 import { MigrationsModule } from './migrations/migrations.module';
+import { CompanyModule } from './company/company.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { MigrationsModule } from './migrations/migrations.module';
     ScheduleModule.forRoot(),
     CandidateModule,
     MigrationsModule,
+    CompanyModule,
   ],
   controllers: [AppController],
   providers: [NotificationService],
