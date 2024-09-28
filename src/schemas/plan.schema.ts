@@ -32,22 +32,3 @@ export class Plan {
 
 export const PlanSchema = SchemaFactory.createForClass(Plan);
 
-/*
-{
-  name: "Premium",
-  price: 29.99,
-  billingFrequency: "monthly",
-  featureLimits: {
-    "apples": 100,
-    "oranges": 200,
-    "bananas": 50,
-    "customReports": 10,
-    "apiCalls": 10000,
-    "storageGB": 50
-  },
-  description: "Our most popular plan for growing businesses. Includes advanced features and higher usage limits.",
-  isActive: true,
-  createdAt: ISODate("2024-08-21T10:00:00Z"),
-  updatedAt: ISODate("2024-08-21T10:00:00Z")
-}
-*/
