@@ -45,13 +45,18 @@ export class MagicLoginStrategy extends PassportStrategy(
 
   async validate(payload: {
     destination: string;
+    name: string;
     usertype: UserType;
     code: string;
   }) {
-    const { destination, usertype } = payload;
+    const { destination, usertype, name } = payload;
 
-    const user = await this.authService.validateUser(destination, usertype);
+    const user = await this.authService.validateUserCallback(
+      destination,
+      usertype,
+      name,
+    );
 
-    return { ...user, usertype };
+    return { ...user, usertype, name };
   }
 }

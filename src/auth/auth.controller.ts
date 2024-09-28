@@ -14,8 +14,14 @@ import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { Request, Response } from 'express';
 
-import { EmailSigninDto } from 'src/employer/dto/email.signin.dto';
-import { EmailSignupDto } from 'src/employer/dto/email.signup.dto';
+import {
+  CandidateEmailSigninDto,
+  EmployerEmailSigninDto,
+} from 'src/employer/dto/email.signin.dto';
+import {
+  CandidateEmailSignupDto,
+  EmployerEmailSignupDto,
+} from 'src/employer/dto/email.signup.dto';
 
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
@@ -35,25 +41,32 @@ export class AuthController {
   @Post('employer/sign-up')
   @UsePipes(new ValidationPipe())
   @ApiOperation({ summary: 'Employer Signup (without Organization)' })
-  @ApiBody({ description: 'Employer signup details', type: EmailSignupDto })
+  @ApiBody({
+    description: 'Employer signup details',
+    type: EmployerEmailSignupDto,
+  })
   @ApiResponse({ status: 201, description: 'Employer signed up successfully' })
   async signupEmployer(
-    @Body() body: EmailSignupDto,
+    @Body() body: EmployerEmailSignupDto,
     @Res({ passthrough: true }) res: Response,
     @Req() req: Request,
   ) {
-    const { email } = body;
-    const result = await this.authService.emailEmployerSignup(body);
+    const result = await this.authService.findUser(
+      body.email,
+      UserType.CANDIDATE,
+    );
 
     if (result) {
-      req.body.destination = email;
-
-      req.body.usertype = UserType.EMPLOYER;
-
-      return this.magicStrategy.send(req, res);
+      throw new UnauthorizedException('Kindly Login!');
     }
 
-    throw new UnauthorizedException('Employer signup failed');
+    const { email } = body;
+
+    req.body.destination = email;
+
+    req.body.usertype = UserType.EMPLOYER;
+
+    return this.magicStrategy.send(req, res);
   }
 
   @Post('employer/sign-in')
@@ -61,7 +74,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Send Magic Link for Employer Signin' })
   @ApiBody({
     description: 'Employer email to receive the magic login link',
-    type: EmailSigninDto,
+    type: EmployerEmailSigninDto,
   })
   @ApiResponse({
     status: 200,
@@ -76,7 +89,7 @@ export class AuthController {
     description: 'Invalid email address or missing email',
   })
   async signinEmployer(
-    @Body() body: EmailSigninDto,
+    @Body() body: EmployerEmailSigninDto,
     @Res({ passthrough: true }) res: Response,
     @Req() req: Request,
   ) {
@@ -95,6 +108,57 @@ export class AuthController {
 
     req.body.destination = body.email;
     req.body.usertype = UserType.EMPLOYER;
+
+    return this.magicStrategy.send(req, res);
+  }
+
+  @Post('candidate/sign-up')
+  @UsePipes(new ValidationPipe())
+  async signupCandidate(
+    @Body() body: CandidateEmailSignupDto,
+    @Res({ passthrough: true }) res: Response,
+    @Req() req: Request,
+  ) {
+    const result = await this.authService.findUser(
+      body.email,
+      UserType.CANDIDATE,
+    );
+
+    if (result) {
+      throw new UnauthorizedException('Kindly Login!');
+    }
+
+    const { email } = body;
+
+    req.body.destination = email;
+
+    req.body.usertype = UserType.CANDIDATE;
+
+    return this.magicStrategy.send(req, res);
+  }
+
+  @Post('candidate/sign-in')
+  @UsePipes(new ValidationPipe())
+  async signinCandidate(
+    @Body() body: CandidateEmailSigninDto,
+    @Res({ passthrough: true }) res: Response,
+    @Req() req: Request,
+  ) {
+    const result = await this.authService.validateUser(
+      body.email,
+      UserType.CANDIDATE,
+    );
+
+    if (result) {
+      if (result.provider !== 'EMAIL_PASSWORD') {
+        throw new UnauthorizedException(
+          'Account already exists with a different account provider',
+        );
+      }
+    }
+
+    req.body.destination = body.email;
+    req.body.usertype = UserType.CANDIDATE;
 
     return this.magicStrategy.send(req, res);
   }

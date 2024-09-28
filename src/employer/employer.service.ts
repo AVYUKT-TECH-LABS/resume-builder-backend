@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateJobDto } from './dto/create-job.dto';
-import { EmailSignupDto } from './dto/email.signup.dto';
+import { EmployerEmailSignupDto } from './dto/email.signup.dto';
 import { OnBoardingDto } from './dto/onBoardDto.dto';
 import { UpdateJobApplicationDto } from './dto/update-job-application.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
@@ -10,9 +10,12 @@ import { UpdateJobDto } from './dto/update-job.dto';
 export class EmployerService {
   constructor(private prismaService: PrismaService) {}
 
-  async createEmployeeWithoutCompany(data: EmailSignupDto) {
+  async createEmployeeWithoutCompany(data: EmployerEmailSignupDto) {
     return this.prismaService.employer.create({
-      data,
+      data: {
+        ...data,
+        provider: 'EMAIL_PASSWORD',
+      },
     });
   }
 
