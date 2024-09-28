@@ -27,14 +27,16 @@ export class CandidateController {
       workExperience: workExperience ? workExperience.split(', ') : undefined,
     });
 
-    const aggregatedJobs = await this.aggJobs.get();
+    // const aggregatedJobs = await this.aggJobs.get();
 
-    const merged = [...jobs, ...aggregatedJobs];
-    for (let i = merged.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [merged[i], merged[j]] = [merged[j], merged[i]];
-    }
-    return merged;
+    // const merged = [...jobs, ...aggregatedJobs];
+    // for (let i = merged.length - 1; i > 0; i--) {
+    //   const j = Math.floor(Math.random() * (i + 1));
+    //   [merged[i], merged[j]] = [merged[j], merged[i]];
+    // }
+    // return merged;
+
+    return jobs;
   }
 
   @Get('/job/:id')
