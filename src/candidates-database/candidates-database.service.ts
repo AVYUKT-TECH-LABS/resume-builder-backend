@@ -3,14 +3,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import { ResumeV2 } from '../schemas/resume.schema.v2';
 import { Model } from 'mongoose';
 import { OpenAiService } from '../openai/openai.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class CandidatesDatabaseService {
   private logger: Logger = new Logger(CandidatesDatabaseService.name);
-  private prisma: any;
   constructor(
     @InjectModel(ResumeV2.name) private resumeModel: Model<ResumeV2>,
     private openai: OpenAiService,
+    private prisma: PrismaService,
   ) {}
 
   async getRecommendedCandidatesForJob(
@@ -22,7 +23,7 @@ export class CandidatesDatabaseService {
       //get saved embeddings for the job
       const job = await this.prisma.job.findUnique({
         where: {
-          _id: jobId,
+          id: jobId,
         },
         select: {
           embeddings: true,
@@ -81,7 +82,7 @@ export class CandidatesDatabaseService {
       //get saved embeddings for the job
       const job = await this.prisma.job.findUnique({
         where: {
-          _id: jobId,
+          id: jobId,
         },
         select: {
           embeddings: true,

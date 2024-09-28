@@ -133,6 +133,7 @@ model Job {
   applications          Application[]
   Organization          Organization     @relation(fields: [organizationId], references: [id])
   organizationId        String
+  embeddings            String?
 
   @@index([employerId])
 }
@@ -145,6 +146,8 @@ model AggregatedJob {
   link     String
   platform String
 }
+
+// model ResumeProcessing{}
 
 model Application {
   id                 String            @id @default(uuid())
