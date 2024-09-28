@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   Req,
   Res,
   UnauthorizedException,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -16,9 +18,9 @@ import { EmailSigninDto } from 'src/employer/dto/email.signin.dto';
 import { EmailSignupDto } from 'src/employer/dto/email.signup.dto';
 
 import { ConfigService } from '@nestjs/config';
+import { AuthGuard } from '@nestjs/passport';
+import { MagicLoginStrategy } from 'src/strategy/magiclink.strategy';
 import { AuthService } from './auth.service';
-import { MagicLinkDto } from './dto/magiclink.dto';
-import { MagicLoginStrategy } from './strategy/magiclink.strategy';
 import { UserType } from './types/index.type';
 
 @Controller('auth')
@@ -29,24 +31,6 @@ export class AuthController {
     private configService: ConfigService,
     private magicStrategy: MagicLoginStrategy,
   ) {}
-
-  @Post('send-link')
-  async sendLink(
-    @Res({ passthrough: true }) res: Response,
-    @Body() body: MagicLinkDto,
-    @Req() req: Request,
-  ) {
-    // const user = await this.authService.validateUser(body.destination);
-    // if (user) {
-    //   if (user.provider !== 'EMAIL_PASSWORD') {
-    //     throw new UnauthorizedException(
-    //       'A user with that email already exists with a different account provider',
-    //     );
-    //   }
-    // }
-
-    return this.magicStrategy.send(req, res);
-  }
 
   @Post('employer/sign-up')
   @UsePipes(new ValidationPipe())
@@ -63,6 +47,8 @@ export class AuthController {
 
     if (result) {
       req.body.destination = email;
+
+      req.body.usertype = UserType.EMPLOYER;
 
       return this.magicStrategy.send(req, res);
     }
@@ -93,7 +79,6 @@ export class AuthController {
     @Body() body: EmailSigninDto,
     @Res({ passthrough: true }) res: Response,
     @Req() req: Request,
-    // @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.validateUser(
       body.email,
@@ -109,7 +94,36 @@ export class AuthController {
     }
 
     req.body.destination = body.email;
+    req.body.usertype = UserType.EMPLOYER;
 
     return this.magicStrategy.send(req, res);
+  }
+
+  @Get('login/callback')
+  @UseGuards(AuthGuard('magic-login'))
+  async test(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    if (!req.user) {
+      throw new UnauthorizedException('No user from magic link');
+    }
+
+    const result = await this.authService.generateTokens(
+      req.user,
+      'EMAIL_PASSWORD',
+    );
+
+    res.cookie(
+      this.configService.get<string>('JWT_COOKIE_NAME'),
+      result.access_token,
+      {
+        httpOnly: true,
+        secure: true,
+        maxAge: 1000 * 60 * 60 * 24 * 30,
+      },
+    );
+
+    return {
+      code: 200,
+      message: 'Login sucessful',
+    };
   }
 }

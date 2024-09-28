@@ -23,7 +23,6 @@ model User {
 model Organization {
   id               String             @id @default(uuid())
   name             String
-  display_name     String             @default("")
   logo_url         String
   description      String
   city             String
@@ -108,7 +107,7 @@ model Job {
   pay_type              PayType
   fixed_salary          String?
   avg_incentive         String?
-  perks                 String
+  perks                 String?
   joining_fee_required  Boolean
   joining_fee           String?
   minimum_edu           EducationLevel
@@ -117,10 +116,10 @@ model Job {
   total_experience      String?
   gender                Gender?
   age                   String?
-  regional_languages    String
-  required_assets       String
-  skills                String
-  jd                    String?
+  regional_languages    String?
+  required_assets       String?
+  skills                String?
+  jd                    String
   interview_type        InterviewType
   interview_address     String?
   walk_in_start_date    String?
@@ -128,6 +127,8 @@ model Job {
   walk_in_timings       String?
   other_instructions    String?
   online_interview_link String?
+  is_deleted            Boolean          @default(false)
+  deleted_at            DateTime?
   created_at            DateTime         @default(now())
   updated_at            DateTime         @updatedAt
   applications          Application[]

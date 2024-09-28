@@ -6,7 +6,9 @@ import { CloudModule } from './cloud/cloud.module';
 import { IpInfoModule } from './ip-info/ip-info.module';
 // import { JobPortalModule } from './job-portal/job-portal.module';
 import { JwtModule } from '@nestjs/jwt';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
+import { CandidateModule } from './candidate/candidate.module';
 import clerkConfig from './config/clerk.config';
 import { EmployerModule } from './employer/employer.module';
 import { JobsModule } from './jobs/jobs.module';
@@ -20,7 +22,6 @@ import { ResumeModule } from './resume/resume.module';
 import { CandidatesDatabaseModule } from './candidates-database/candidates-database.module';
 import { ResumeProcessorModule } from './resume-processor/resume-processor.module';
 import { UsersModule } from './users/users.module';
-import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -42,13 +43,13 @@ import { ScheduleModule } from '@nestjs/schedule';
     // JobPortalModule,
     CandidatesDatabaseModule,
     ResumeProcessorModule,
-    // JobPortalModule,
     PrismaModule,
     AuthModule,
     EmployerModule,
-    UsersModule,
+    CandidateModule,
     JwtModule,
     ScheduleModule.forRoot(),
+    CandidateModule,
   ],
   controllers: [AppController],
   providers: [NotificationService],
