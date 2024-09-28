@@ -46,10 +46,10 @@ export default class ResumeControllerV2 {
   //   return this.resumeService.updatePreviews();
   // }
 
-  @Post('get_rec')
-  async getRec(@Body() body: { jd: string }) {
-    return this.resumeService.getRec(body.jd);
-  }
+  // @Post('get_rec')
+  // async getRec(@Body() body: { jd: string }) {
+  //   return this.resumeService.getRec(body.jd);
+  // }
 
   @UseGuards(ClerkAuthGuard)
   @Get('list')

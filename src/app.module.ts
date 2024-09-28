@@ -11,6 +11,8 @@ import { LinkedinOptimizerModule } from './linkedin-optimizer/linkedin-optimizer
 import { OpenAIModule } from './openai/openai.module';
 import { PaymentsModule } from './payments/payments.module';
 import { ResumeModule } from './resume/resume.module';
+import { CandidatesDatabaseModule } from './candidates-database/candidates-database.module';
+import { ResumeProcessorModule } from './resume-processor/resume-processor.module';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { ResumeModule } from './resume/resume.module';
     LinkedinOptimizerModule,
     IpInfoModule,
     JobPortalModule,
+    CandidatesDatabaseModule,
+    ResumeProcessorModule,
   ],
   controllers: [AppController],
 })
