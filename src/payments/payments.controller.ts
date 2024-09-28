@@ -12,17 +12,17 @@ import {
 } from '@nestjs/common';
 
 import { GetUser } from '../decorators/user.decorator';
-import { ClerkAuthGuard } from '../guards/clerk.guard';
 import { User } from '../interfaces/user.interface';
 import { PaymentsService } from './payments.service';
 import { RealIp } from 'nestjs-real-ip';
+import { CandidateJwtAuthGuard } from '../guards/candidate.auth.guard';
 
 @Controller('payments')
 export class PaymentsController {
   private logger: Logger = new Logger(PaymentsController.name);
   constructor(private paymentService: PaymentsService) {}
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Post('/order/create')
   async createOrder(
     @GetUser() user: User,
@@ -66,7 +66,7 @@ export class PaymentsController {
     return this.paymentService.processWebhook(payload);
   }
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Get('status/:orderId')
   getStatus(@Param('orderId') orderId: string) {
     try {

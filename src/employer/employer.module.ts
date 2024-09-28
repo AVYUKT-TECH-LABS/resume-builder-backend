@@ -4,10 +4,17 @@ import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { EmployerController } from './employer.controller';
 import { EmployerService } from './employer.service';
+import { OpenAIModule } from '../openai/openai.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import {
+  JobEmbeddings,
+  JobEmbeddingsSchema,
+} from '../schemas/job-embeddings.schema';
 
 @Module({
   imports: [
     PrismaModule,
+    OpenAIModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -15,6 +22,9 @@ import { EmployerService } from './employer.service';
       }),
       inject: [ConfigService],
     }),
+    MongooseModule.forFeature([
+      { name: JobEmbeddings.name, schema: JobEmbeddingsSchema },
+    ]),
   ],
   controllers: [EmployerController],
   providers: [EmployerService],

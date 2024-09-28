@@ -126,6 +126,7 @@ export class ResumeController {
 
       return this.resumeService.uploadResume(userId, file);
     } catch (err) {
+      console.log(err);
       if (err instanceof BadRequestException) throw err;
       throw new InternalServerErrorException('Failed to upload resume');
     }

@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+// import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { CloudService } from '../cloud/cloud.service';
@@ -16,17 +16,23 @@ export class ResumeServiceV2 {
   constructor(
     @InjectModel(ResumeV2.name) private resumeModel: Model<ResumeV2>,
     @InjectModel(Upload.name) private uploadModel: Model<Upload>,
-    private config: ConfigService,
+    // private config: ConfigService,
     private openai: OpenAiService,
     private cloud: CloudService,
   ) {}
 
   async get(resumeId: string, userId?: string | undefined) {
     try {
-      const resume = await this.resumeModel.findOne({
-        _id: resumeId,
-        ...(userId && { userId }),
-      });
+      const resume = await this.resumeModel.findOne(
+        {
+          _id: resumeId,
+          ...(userId && { userId }),
+        },
+        {
+          embeddings: 0,
+          plainText: 0,
+        },
+      );
 
       if (!resume) throw new NotFoundException('Resume not found');
 
@@ -167,8 +173,11 @@ export class ResumeServiceV2 {
         'v2',
       );
 
+      //create embeddings
+      const embeddings = await this.openai.generateEmbeddings(resume.plainText);
+
       const created = await this.create(
-        { ...defaults, ...resume },
+        { ...defaults, ...resume, embeddings },
         uploaded.userId,
       );
 

@@ -73,6 +73,20 @@ export class OpenAiService {
     }
   }
 
+  async generateEmbeddings(input: string) {
+    try {
+      const response = await this.openai.embeddings.create({
+        input,
+        model: 'text-embedding-3-small',
+      });
+
+      return response.data[0].embedding
+    } catch (error) {
+      console.error('Error calling OpenAI API:', error);
+      throw new Error('Failed to generate embeddings from OpenAI');
+    }
+  }
+
   async parse(content: string) {
     const output = await this.generateResponse(prompts.parse, content, {
       schema: ParsedResume,

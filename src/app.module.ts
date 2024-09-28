@@ -19,6 +19,9 @@ import { OpenAIModule } from './openai/openai.module';
 import { PaymentsModule } from './payments/payments.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ResumeModule } from './resume/resume.module';
+import { CandidatesDatabaseModule } from './candidates-database/candidates-database.module';
+import { ResumeProcessorModule } from './resume-processor/resume-processor.module';
+import { MigrationsModule } from './migrations/migrations.module';
 import { CompanyModule } from './company/company.module';
 
 @Module({
@@ -39,6 +42,8 @@ import { CompanyModule } from './company/company.module';
     NotificationModule,
     IpInfoModule,
     // JobPortalModule,
+    CandidatesDatabaseModule,
+    ResumeProcessorModule,
     PrismaModule,
     AuthModule,
     EmployerModule,
@@ -46,6 +51,7 @@ import { CompanyModule } from './company/company.module';
     JwtModule,
     ScheduleModule.forRoot(),
     CandidateModule,
+    MigrationsModule,
     CompanyModule,
   ],
   controllers: [AppController],

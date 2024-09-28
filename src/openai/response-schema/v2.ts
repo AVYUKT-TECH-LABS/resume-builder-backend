@@ -101,4 +101,9 @@ const sections = z.object({
 
 export const ParsedResumeV2 = z.object({
   sections,
+  plainText: z
+    .string()
+    .describe(
+      'The content that you just created in plain text without any newline character, Also dont include personal information such as email, phonenumber, You can include links, address etc.',
+    ),
 });

@@ -12,8 +12,8 @@ declare global {
         usertype: 'employer' | 'candidate';
       };
 
-      candidate: Candidate | null;
-      employer: Employer | null;
+      candidate: Partial<Candidate> | null;
+      employer: Partial<Employer> | null;
     }
   }
 }

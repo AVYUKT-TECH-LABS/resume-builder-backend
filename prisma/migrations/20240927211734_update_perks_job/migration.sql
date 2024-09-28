@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE `job` MODIFY `perks` VARCHAR(191) NULL;
+ALTER TABLE `Job` MODIFY `perks` VARCHAR(191) NULL;
