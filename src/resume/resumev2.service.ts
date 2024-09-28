@@ -329,13 +329,13 @@ export class ResumeServiceV2 {
           index: 'vector_index',
           path: 'embeddings',
           queryVector: jdEmbedding,
-          limit: 1000, // Adjust based on your data size and performance needs
+          limit: 1000,
           numCandidates: 1000,
         },
       },
       {
         $sort: {
-          score: -1, // Sort by score in descending order
+          score: -1,
         },
       },
       {
@@ -352,10 +352,7 @@ export class ResumeServiceV2 {
               '$topMatch',
               {
                 score: {
-                  $round: [
-                    { $multiply: ['$score', 100] },
-                    0, // 0 decimal places
-                  ],
+                  $round: [{ $multiply: ['$score', 100] }, 0],
                 },
               },
             ],
