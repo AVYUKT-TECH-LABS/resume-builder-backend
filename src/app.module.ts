@@ -19,6 +19,7 @@ import { OpenAIModule } from './openai/openai.module';
 import { PaymentsModule } from './payments/payments.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ResumeModule } from './resume/resume.module';
+import { CompanyModule } from './company/company.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { ResumeModule } from './resume/resume.module';
     JwtModule,
     ScheduleModule.forRoot(),
     CandidateModule,
+    CompanyModule,
   ],
   controllers: [AppController],
   providers: [NotificationService],
