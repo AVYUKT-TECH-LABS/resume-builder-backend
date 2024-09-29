@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
-import { CandidateJwtAuthGuard } from 'src/guards/candidate.auth.guard';
+import { CandidateJwtAuthGuard } from '../guards/candidate.auth.guard';
 import { CandidateService } from './candidate.service';
 import { JobsService } from '../jobs/jobs.service';
 

@@ -9,7 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Employer } from '@prisma/client';
 
 import { Request } from 'express';
-import { UserType } from 'src/auth/types/index.type';
+import { UserType } from '../auth/types/index.type';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()

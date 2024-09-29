@@ -14,8 +14,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { EmployerService } from './employer.service';
 
 import { Request } from 'express';
-import { EmployerJwtAuthGuard } from 'src/guards/employer.auth.guard';
-import { OnboardingGuard } from 'src/guards/employer.on-boarding.guard';
+import { EmployerJwtAuthGuard } from '../guards/employer.auth.guard';
+import { OnboardingGuard } from '../guards/employer.on-boarding.guard';
 import { CreateJobDto } from './dto/create-job.dto';
 import { OnBoardingDto } from './dto/onBoardDto.dto';
 import { UpdateJobApplicationDto } from './dto/update-job-application.dto';

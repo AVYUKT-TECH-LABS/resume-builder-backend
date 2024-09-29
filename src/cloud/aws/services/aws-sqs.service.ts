@@ -1,7 +1,7 @@
 import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
 import { fromEnv } from '@aws-sdk/credential-providers';
 import { Injectable } from '@nestjs/common';
-import { ISqsService } from 'src/cloud/interfaces/sqs.interface';
+import { ISqsService } from '../../../cloud/interfaces/sqs.interface';
 
 @Injectable()
 export class AwsSQSService implements ISqsService {

@@ -7,13 +7,13 @@ import { JwtService } from '@nestjs/jwt';
 
 import { ConfigService } from '@nestjs/config';
 import { Employer, User } from '@prisma/client';
-import { CandidateService } from 'src/candidate/candidate.service';
+import { CandidateService } from '../candidate/candidate.service';
 import {
   CandidateEmailSignupDto,
   EmployerEmailSignupDto,
-} from 'src/employer/dto/email.signup.dto';
-import { EmployerService } from 'src/employer/employer.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+} from '../employer/dto/email.signup.dto';
+import { EmployerService } from '../employer/employer.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { UserType } from './types/index.type';
 
 @Injectable()

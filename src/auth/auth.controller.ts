@@ -17,15 +17,15 @@ import { Request, Response } from 'express';
 import {
   CandidateEmailSigninDto,
   EmployerEmailSigninDto,
-} from 'src/employer/dto/email.signin.dto';
+} from '../employer/dto/email.signin.dto';
 import {
   CandidateEmailSignupDto,
   EmployerEmailSignupDto,
-} from 'src/employer/dto/email.signup.dto';
+} from '../employer/dto/email.signup.dto';
 
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
-import { MagicLoginStrategy } from 'src/strategy/magiclink.strategy';
+import { MagicLoginStrategy } from '../strategy/magiclink.strategy';
 import { AuthService } from './auth.service';
 import { UserType } from './types/index.type';
 import { AuthGuard as CommonGuard } from '../guards/auth.guard';
