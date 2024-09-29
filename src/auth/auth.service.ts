@@ -26,6 +26,55 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
+  async getAuthUser(requestUser: any) {
+    if (requestUser.role == 'Candidate') {
+      return this.prismaService.user.findFirst({
+        where: {
+          id: requestUser.id,
+        },
+        select: {
+          name: true,
+          banned: true,
+          locked: true,
+          hasImage: true,
+          imageUrl: true,
+          created_at: true,
+          updated_at: true,
+          email: true,
+          id: true,
+          credits: true,
+        },
+      });
+    } else if (requestUser.role == 'Employer') {
+      return this.prismaService.employer.findFirst({
+        where: {
+          id: requestUser.id,
+        },
+        select: {
+          name: true,
+          banned: true,
+          locked: true,
+          hasImage: true,
+          imageUrl: true,
+          created_at: true,
+          updated_at: true,
+          email: true,
+          id: true,
+          is_deleted: true,
+          deleted_at: true,
+          deletion_message: true,
+          is_verified: true,
+          organization: {
+            select: {
+              name: true,
+              logo_url: true,
+            },
+          },
+        },
+      });
+    }
+  }
+
   async emailEmployerSignup(data: EmployerEmailSignupDto) {
     const employee = await this.employerService.findEmployeeByEmail(data.email);
 

@@ -28,6 +28,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { MagicLoginStrategy } from 'src/strategy/magiclink.strategy';
 import { AuthService } from './auth.service';
 import { UserType } from './types/index.type';
+import { AuthGuard as CommonGuard } from '../guards/auth.guard';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -170,6 +171,7 @@ export class AuthController {
       throw new UnauthorizedException('No user from magic link');
     }
 
+    console.log(req.user);
     const result = await this.authService.generateTokens(
       req.user,
       'EMAIL_PASSWORD',
@@ -187,7 +189,18 @@ export class AuthController {
 
     return {
       code: 200,
-      message: 'Login sucessful',
+      message: 'Login successful',
+    };
+  }
+
+  @UseGuards(CommonGuard)
+  @Get('user')
+  async getAuthUser(@Req() req: Request) {
+    const user = await this.authService.getAuthUser(req.user);
+    return {
+      ...user,
+      role: (req.user as any).role,
+      token: req.headers.authorization,
     };
   }
 }
