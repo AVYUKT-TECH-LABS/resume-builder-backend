@@ -25,10 +25,10 @@ import {
 
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
+import { AuthGuard as CommonGuard } from '../guards/auth.guard';
 import { MagicLoginStrategy } from '../strategy/magiclink.strategy';
 import { AuthService } from './auth.service';
 import { UserType } from './types/index.type';
-import { AuthGuard as CommonGuard } from '../guards/auth.guard';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -189,6 +189,17 @@ export class AuthController {
     return {
       code: 200,
       message: 'Login successful',
+    };
+  }
+
+  @Get('logout')
+  @UseGuards(CommonGuard)
+  async logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie(this.configService.get<string>('JWT_COOKIE_NAME'));
+
+    return {
+      code: 200,
+      message: 'Logout successful',
     };
   }
 

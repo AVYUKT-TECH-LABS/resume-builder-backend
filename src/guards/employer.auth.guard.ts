@@ -1,6 +1,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -60,9 +61,19 @@ export class EmployerJwtAuthGuard implements CanActivate {
         },
       });
 
+      if (!employer.organization_id) {
+        if (
+          request.url !== '/v1/employer/on-boarding' &&
+          request.url !== '/v1/employer/upload'
+        ) {
+          throw new ForbiddenException('Complete on-boarding first!');
+        }
+      }
+
       request.employer = employer;
       return true;
     } catch (err) {
+      if (err instanceof ForbiddenException) throw err;
       throw new UnauthorizedException('Invalid token, Kindly Login!');
     }
   }

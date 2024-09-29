@@ -4,10 +4,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { CloudService } from '../cloud/cloud.service';
 import { OpenAiService } from '../openai/openai.service';
+import { PrismaService } from '../prisma/prisma.service';
 import _puppeteer from '../puppeteer';
 import { ResumeV2 } from '../schemas/resume.schema.v2';
 import { Upload } from '../schemas/upload.schema';
-import { deductCredits } from '../utils/credits';
 import shortId from '../utils/shortid';
 import { CreateResumeDTO, UpdateResumeDTO } from './dto/resumev2.dto';
 
@@ -19,6 +19,7 @@ export class ResumeServiceV2 {
     // private config: ConfigService,
     private openai: OpenAiService,
     private cloud: CloudService,
+    private prismaService: PrismaService,
   ) {}
 
   async get(resumeId: string, userId?: string | undefined) {
@@ -216,7 +217,7 @@ export class ResumeServiceV2 {
     const page = await browser.newPage();
 
     // Navigate to the dedicated Next.js PDF page
-    const url = `${process.env.FRONTEND_URL}/pdf/${resumeId}`;
+    const url = `${process.env.FRONTEND_URL}/candidate/pdf/${resumeId}`;
     await page.goto(url, { waitUntil: 'networkidle0' });
 
     //   const customCSS = `
@@ -248,7 +249,7 @@ export class ResumeServiceV2 {
 
     await page.close();
 
-    if (pdfBuffer && !existing) await deductCredits(userId, 30);
+    if (pdfBuffer && !existing) await this.deductCredits(userId, 30);
 
     return pdfBuffer;
   }
@@ -258,7 +259,7 @@ export class ResumeServiceV2 {
     const page = await browser.newPage();
 
     // Navigate to the dedicated Next.js PDF page
-    const url = `${process.env.FRONTEND_URL}/pdf/${resumeId}`;
+    const url = `${process.env.FRONTEND_URL}/candidate/pdf/${resumeId}`;
 
     try {
       await page.setViewport({
@@ -314,6 +315,56 @@ export class ResumeServiceV2 {
       return 'All previews generated successfully';
     } catch (err) {
       console.error('An error occurred while updating previews:', err);
+      throw err;
+    }
+  }
+
+  async hasCredits(userId: string, min: number) {
+    try {
+      const user = await this.prismaService.user.findFirst({
+        where: {
+          id: userId,
+        },
+      });
+      const credits = user.credits;
+      if (credits && Number(credits) >= min) return true;
+      return false;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async deductCredits(userId: string, amt: number) {
+    try {
+      const user = await this.prismaService.user.findFirst({
+        where: {
+          id: userId,
+        },
+      });
+
+      let currentCredits = user.credits;
+
+      if (typeof currentCredits !== 'number') {
+        currentCredits = 0;
+      }
+
+      if (Number(currentCredits) < amt) {
+        throw new Error('Insufficient credits');
+      }
+
+      const newCredits = Number(currentCredits) - amt;
+
+      await this.prismaService.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          credits: newCredits,
+        },
+      });
+
+      return newCredits;
+    } catch (err) {
       throw err;
     }
   }

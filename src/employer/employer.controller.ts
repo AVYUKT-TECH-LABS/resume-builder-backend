@@ -1,21 +1,29 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
+  InternalServerErrorException,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
   Patch,
   Post,
   Req,
+  Res,
   UnauthorizedException,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { EmployerService } from './employer.service';
 
-import { Request } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Request, Response } from 'express';
 import { EmployerJwtAuthGuard } from '../guards/employer.auth.guard';
-import { OnboardingGuard } from '../guards/employer.on-boarding.guard';
 import { CreateJobDto } from './dto/create-job.dto';
 import { OnBoardingDto } from './dto/onBoardDto.dto';
 import { UpdateJobApplicationDto } from './dto/update-job-application.dto';
@@ -28,7 +36,6 @@ export class EmployerController {
 
   @Get('/verify')
   @UseGuards(EmployerJwtAuthGuard)
-  @UseGuards(OnboardingGuard)
   async verify() {
     return {
       success: true,
@@ -67,23 +74,40 @@ export class EmployerController {
     };
   }
 
+  @Post('/upload')
+  @UseGuards(EmployerJwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadOrgLogo(
+    @Req() req: Request,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new MaxFileSizeValidator({ maxSize: 50000000 })],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    const url = await this.employerService.uploadOrgLogo(req.employer.id, file);
+
+    return {
+      success: true,
+      upload_url: url,
+    };
+  }
+
   @Get('/jobs')
   @UseGuards(EmployerJwtAuthGuard)
-  @UseGuards(OnboardingGuard)
   async getJobs(@Req() req: Request) {
     return this.employerService.getJobs(req.employer.id);
   }
 
   @Get('/job/:id')
   @UseGuards(EmployerJwtAuthGuard)
-  @UseGuards(OnboardingGuard)
   async getJob(@Req() req: Request, @Param('id') id: string) {
     return this.employerService.getJob(req.employer.id, id);
   }
 
   @Patch('/job/update/:id')
   @UseGuards(EmployerJwtAuthGuard)
-  @UseGuards(OnboardingGuard)
   async updateJob(
     @Req() req: Request,
     @Body() body: UpdateJobDto,
@@ -94,28 +118,24 @@ export class EmployerController {
 
   @Delete('/job/delete/:id')
   @UseGuards(EmployerJwtAuthGuard)
-  @UseGuards(OnboardingGuard)
   async deleteJob(@Req() req: Request, @Param('id') id: string) {
     return this.employerService.deleteJob(req.employer.id, id);
   }
 
   @Post('/job')
   @UseGuards(EmployerJwtAuthGuard)
-  @UseGuards(OnboardingGuard)
   async addJob(@Req() req: Request, @Body() body: CreateJobDto) {
     return this.employerService.addJob(req.employer.id, body);
   }
 
   @Get('/job/candidates/:jobId')
   @UseGuards(EmployerJwtAuthGuard)
-  @UseGuards(OnboardingGuard)
   async getCandidates(@Req() req: Request, @Param('jobId') jobId: string) {
     return this.employerService.getCandidates(req.employer.id, jobId);
   }
 
   @Patch('/job/candidates/:id')
   @UseGuards(EmployerJwtAuthGuard)
-  @UseGuards(OnboardingGuard)
   async updateCandidateApplication(
     @Req() req: Request,
     @Param('id') id: string,
@@ -126,5 +146,24 @@ export class EmployerController {
       id,
       body,
     );
+  }
+
+  @Patch('/download')
+  @UseGuards(EmployerJwtAuthGuard)
+  async download(
+    @Req() req: Request,
+    @Body() body: { resumeId: string },
+    @Res() response: Response,
+  ) {
+    try {
+      const pdf = await this.employerService.download(body.resumeId);
+      response.setHeader('Content-Type', 'application/pdf');
+      response.setHeader('Content-Disposition', 'attachment');
+      response.end(pdf);
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      if (err instanceof ForbiddenException) throw err;
+      throw new InternalServerErrorException('Failed to download resume');
+    }
   }
 }

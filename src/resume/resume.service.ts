@@ -7,16 +7,16 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
 import { Model } from 'mongoose';
+import natural from 'natural';
+import { english as stopwords } from 'stopwords';
 import { CloudService } from '../cloud/cloud.service';
 import { OpenAiService } from '../openai/openai.service';
 import { Resume } from '../schemas/resume.schema';
 import { Upload } from '../schemas/upload.schema';
 import { Resume as ResumeType } from '../types/index';
-import { deductCredits, hasCredits } from '../utils/credits';
 import shortId from '../utils/shortid';
 import { UpdateResumeDto } from './dto/update-resume.dto';
-import natural from 'natural';
-import { english as stopwords } from 'stopwords';
+import { ResumeServiceV2 } from './resumev2.service';
 
 @Injectable()
 export class ResumeService {
@@ -26,6 +26,7 @@ export class ResumeService {
     private cloud: CloudService,
     private openai: OpenAiService,
     private config: ConfigService,
+    private resumeServiceV2: ResumeServiceV2,
   ) {}
 
   async create(userId: string) {
@@ -86,7 +87,7 @@ export class ResumeService {
       });
 
       const saved = createdResume.save();
-      await deductCredits(userId, 30);
+      // await deductCredits(userId, 30);
 
       return saved;
     } catch (err) {
@@ -137,7 +138,7 @@ export class ResumeService {
   }
 
   async createFromData(userId: string, resumeData: ResumeType, name: string) {
-    await deductCredits(userId, 30);
+    // await deductCredits(userId, 30);
 
     return this.resumeModel.create({
       userId,
@@ -342,7 +343,10 @@ export class ResumeService {
     if (uploaded.processedContent) return JSON.parse(uploaded.processedContent);
 
     if (Boolean(!isFree)) {
-      const hasEnoughCredits = await hasCredits(uploaded.userId, 50);
+      const hasEnoughCredits = await this.resumeServiceV2.hasCredits(
+        uploaded.userId,
+        50,
+      );
       if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
     }
 
@@ -351,7 +355,8 @@ export class ResumeService {
       Boolean(isFree),
       jd,
     );
-    if (!Boolean(isFree)) await deductCredits(uploaded.userId, 50);
+    if (!Boolean(isFree))
+      await this.resumeServiceV2.deductCredits(uploaded.userId, 50);
     await uploaded.updateOne({
       processedContent: JSON.stringify(result),
     });

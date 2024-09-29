@@ -1,4 +1,3 @@
-import { User } from '@clerk/clerk-sdk-node';
 import {
   BadRequestException,
   Body,
@@ -13,6 +12,7 @@ import {
   ParseFilePipe,
   Patch,
   Post,
+  Req,
   Res,
   UploadedFile,
   UseGuards,
@@ -20,13 +20,12 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { GetUser } from '../decorators/user.decorator';
+import { Request, Response } from 'express';
+import { CandidateJwtAuthGuard } from '../guards/candidate.auth.guard';
 import { ClerkAuthGuard } from '../guards/clerk.guard';
-import { hasCredits } from '../utils/credits';
 import { CreateResumeDTO, UpdateResumeDTO } from './dto/resumev2.dto';
 import { ResumeService } from './resume.service';
 import { ResumeServiceV2 } from './resumev2.service';
-import { Response } from 'express';
 
 @ApiBearerAuth()
 @ApiTags('Resume')
@@ -51,11 +50,11 @@ export default class ResumeControllerV2 {
   //   return this.resumeService.getRec(body.jd);
   // }
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Get('list')
-  async allResumes(@GetUser() user: User) {
+  async allResumes(@Req() req: Request) {
     try {
-      const resumes = await this.resumeService.getAll(user.id);
+      const resumes = await this.resumeService.getAll(req.candidate.id);
       return resumes;
     } catch (err) {
       this.logger.error(err);
@@ -80,17 +79,23 @@ export default class ResumeControllerV2 {
     }
   }
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Post('download')
   async download(
     @Body() body: { resumeId: string },
     @Res() response: Response,
-    @GetUser() user: User,
+    @Req() req: Request,
   ) {
     try {
-      const hasEnoughCredits = await hasCredits(user.id, 30);
+      const hasEnoughCredits = await this.resumeService.hasCredits(
+        req.candidate.id,
+        30,
+      );
       if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
-      const pdf = await this.resumeService.download(body.resumeId, user.id);
+      const pdf = await this.resumeService.download(
+        body.resumeId,
+        req.candidate.id,
+      );
       response.setHeader('Content-Type', 'application/pdf');
       response.setHeader('Content-Disposition', 'attachment');
       response.end(pdf);
@@ -102,11 +107,11 @@ export default class ResumeControllerV2 {
     }
   }
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Get('read/:resumeId')
-  async getResume(@Param('resumeId') resumeId: string, @GetUser() user: User) {
+  async getResume(@Param('resumeId') resumeId: string, @Req() req: Request) {
     try {
-      const resume = await this.resumeService.get(resumeId, user.id);
+      const resume = await this.resumeService.get(resumeId, req.candidate.id);
       return resume;
     } catch (err) {
       this.logger.error(err);
@@ -117,14 +122,14 @@ export default class ResumeControllerV2 {
     }
   }
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Post('create')
-  async createResume(
-    @GetUser() user: User,
-    @Body() resumeData: CreateResumeDTO,
-  ) {
+  async createResume(@Req() req: Request, @Body() resumeData: CreateResumeDTO) {
     try {
-      const isCreated = await this.resumeService.create(resumeData, user.id);
+      const isCreated = await this.resumeService.create(
+        resumeData,
+        req.candidate.id,
+      );
 
       if (!isCreated) return 'Failed to save resume';
 
@@ -144,18 +149,18 @@ export default class ResumeControllerV2 {
     }
   }
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Patch('update/:resumeId')
   async saveResume(
     @Param('resumeId') resumeId: string,
-    @GetUser() user: User,
+    @Req() req: Request,
     @Body() resumeData: UpdateResumeDTO,
   ) {
     try {
       const isUpdated = await this.resumeService.save(
         resumeId,
         resumeData,
-        user.id,
+        req.candidate.id,
       );
 
       if (!isUpdated) return 'Failed to save resume';
@@ -172,11 +177,11 @@ export default class ResumeControllerV2 {
     }
   }
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Delete('delete/:resumeId')
-  async delete(@Param('resumeId') resumeId: string, @GetUser() user: User) {
+  async delete(@Param('resumeId') resumeId: string, @Req() req: Request) {
     try {
-      await this.resumeService.delete(resumeId, user.id);
+      await this.resumeService.delete(resumeId, req.candidate.id);
       return 'deleted';
     } catch (err) {
       this.logger.error(err);
@@ -187,22 +192,26 @@ export default class ResumeControllerV2 {
     }
   }
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Post('domainSpecific/:upload_id')
   async domainSpecific(
+    @Req() req: Request,
     @Param('upload_id') upload_id: string,
     @Body('domains') domains: string[],
   ) {
     try {
-      // const hasEnoughCredits = await hasCredits(user.id, 30 * domains.length);
-      // if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
+      const hasEnoughCredits = await this.resumeService.hasCredits(
+        req.candidate.id,
+        30 * domains.length,
+      );
+      if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
       return this.resumeService.generateDomainSpecific(upload_id, domains);
     } catch (err) {
       throw err;
     }
   }
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   @Post('picture/upload')
   async uploadPicture(
@@ -212,10 +221,13 @@ export default class ResumeControllerV2 {
       }),
     )
     file: Express.Multer.File,
-    @GetUser() user: User,
+    @Req() req: Request,
   ) {
     try {
-      const url = await this.resumeService.handlePictureUpload(user.id, file);
+      const url = await this.resumeService.handlePictureUpload(
+        req.candidate.id,
+        file,
+      );
 
       return url;
     } catch (err) {
@@ -240,9 +252,9 @@ export default class ResumeControllerV2 {
   }
 
   @Post('existing/upload')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   async uploadExistingResume(
-    @GetUser() user: User,
+    @Req() req: Request,
     @Body() body: { resumeId: string },
   ) {
     try {
@@ -250,10 +262,10 @@ export default class ResumeControllerV2 {
         throw new BadRequestException('No resume selected');
       }
 
-      const userId = user.id;
+      const userId = req.candidate.id;
       const pdfBuffer = await this.resumeService.download(
         body.resumeId,
-        user.id,
+        userId,
         true,
       );
 

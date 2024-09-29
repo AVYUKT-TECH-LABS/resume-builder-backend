@@ -14,6 +14,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -27,35 +28,41 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import axios from 'axios';
+import { Request } from 'express';
 import { GetUser } from '../decorators/user.decorator';
+import { CandidateJwtAuthGuard } from '../guards/candidate.auth.guard';
 import { ClerkAuthGuard } from '../guards/clerk.guard';
 import { User } from '../interfaces/user.interface';
 import { Resume } from '../schemas/resume.schema';
 import { Resume as ResumeType } from '../types/index';
-import { hasCredits } from '../utils/credits';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 import { ResumeService } from './resume.service';
+import { ResumeServiceV2 } from './resumev2.service';
 
 @ApiBearerAuth()
 @ApiTags('Resume')
 @Controller('resume')
 export class ResumeController {
-  constructor(private readonly resumeService: ResumeService) {}
+  constructor(
+    private readonly resumeService: ResumeService,
+    private readonly resumeServiceV2: ResumeServiceV2,
+  ) {}
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Post('create')
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Create resume (CreateResumeDTO)' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 201, description: 'Created' })
-  async create(@GetUser() user: User) {
-    const hasEnoughCredits = await hasCredits(user.id, 30);
-    if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
-    return this.resumeService.create(user.id);
+  async create() {
+    // const hasEnoughCredits = await this.resumeService.cre(user.id, 30);
+    // if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
+    // return this.resumeService.create(user.id);
+    return 'ok';
   }
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Get('list')
   @ApiOperation({ summary: 'Get all resumes of a user' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
@@ -73,8 +80,8 @@ export class ResumeController {
       },
     ],
   })
-  findAll(@GetUser() user: User) {
-    return this.resumeService.findAll(user.id);
+  findAll(@Req() req: Request) {
+    return this.resumeService.findAll(req.candidate.id);
   }
 
   @Get('read/:id')
@@ -280,21 +287,24 @@ export class ResumeController {
     }
   }
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Get('suggestDomains/:upload_id')
   async suggestDomains(@Param('upload_id') upload_id: string) {
     return this.resumeService.suggestDomains(upload_id);
   }
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Post('domainSpecific/:upload_id')
   async domainSpecific(
-    @Param('upload_id') upload_id: string,
+    @Req() req: Request,
     @Body('domains') domains: string[],
-    @GetUser() user: User,
+    @Param('upload_id') upload_id: string,
   ) {
     try {
-      const hasEnoughCredits = await hasCredits(user.id, 30 * domains.length);
+      const hasEnoughCredits = await this.resumeServiceV2.hasCredits(
+        req.candidate.id,
+        30 * domains.length,
+      );
       if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
       return this.resumeService.generateDomainSpecific(upload_id, domains);
     } catch (err) {
@@ -303,6 +313,7 @@ export class ResumeController {
   }
 
   @Post('extractJD')
+  @UseGuards(CandidateJwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async extractJD(
     @UploadedFile(

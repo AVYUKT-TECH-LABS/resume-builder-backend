@@ -1,14 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import _puppeteer from '../puppeteer';
+import { CloudService } from '../cloud/cloud.service';
+import { OpenAiService } from '../openai/openai.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { JobEmbeddings } from '../schemas/job-embeddings.schema';
 import { CreateJobDto } from './dto/create-job.dto';
 import { EmployerEmailSignupDto } from './dto/email.signup.dto';
 import { OnBoardingDto } from './dto/onBoardDto.dto';
 import { UpdateJobApplicationDto } from './dto/update-job-application.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
-import { OpenAiService } from '../openai/openai.service';
-import { InjectModel } from '@nestjs/mongoose';
-import { JobEmbeddings } from '../schemas/job-embeddings.schema';
-import { Model } from 'mongoose';
 
 @Injectable()
 export class EmployerService {
@@ -17,6 +19,7 @@ export class EmployerService {
     private jobEmbeddingsModel: Model<JobEmbeddings>,
     private prismaService: PrismaService,
     private openai: OpenAiService,
+    private cloud: CloudService,
   ) {}
 
   async createEmployeeWithoutCompany(data: EmployerEmailSignupDto) {
@@ -337,5 +340,56 @@ export class EmployerService {
       jobDetails += `Online Interview Link: ${online_interview_link}\n`;
 
     return jobDetails.trim();
+  }
+
+  async uploadOrgLogo(employerId: string, file: Express.Multer.File) {
+    const fileName = `${employerId}-org`;
+
+    const storage = this.cloud.getStorageService();
+
+    const url = await storage.uploadFile(file, fileName, 'txcl-logos');
+
+    return url;
+  }
+
+  async download(resumeId: string) {
+    // const resume = await this.get(resumeId, userId)
+    const browser = await _puppeteer();
+    const page = await browser.newPage();
+
+    // Navigate to the dedicated Next.js PDF page
+    const url = `${process.env.FRONTEND_URL}/candidate/pdf/${resumeId}`;
+    await page.goto(url, { waitUntil: 'networkidle0' });
+
+    //   const customCSS = `
+    //   <style>
+    //     @page {
+    //       margin-top: 1in;
+    //       margin-bottom: 1in;
+    //     }
+
+    //     @page :first {
+    //       margin-top: 0;
+    //       margin-bottom:1in;
+    //     }
+    //   </style>
+    // `;
+
+    //   await page.addStyleTag({ content: customCSS });
+
+    // Generate the PDF
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      waitForFonts: true,
+      preferCSSPageSize: true,
+      // margin: {
+      //   bottom: '1in',
+      // }
+    });
+
+    await page.close();
+
+    return pdfBuffer;
   }
 }

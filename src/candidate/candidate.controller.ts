@@ -1,9 +1,18 @@
-import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { CandidateJwtAuthGuard } from '../guards/candidate.auth.guard';
-import { CandidateService } from './candidate.service';
 import { JobsService } from '../jobs/jobs.service';
+import { CandidateService } from './candidate.service';
 
 @ApiTags('Candidate')
 @Controller('candidate')
@@ -42,6 +51,15 @@ export class CandidateController {
   @Get('/job/:id')
   async getJob(@Param('id') id: string) {
     return this.candidateService.getJob(id);
+  }
+
+  @Post('/job/:id')
+  async apply(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() body: { resume_id: string },
+  ) {
+    return this.candidateService.apply(id, req.candidate.id, body.resume_id);
   }
 
   @Get('/applications')

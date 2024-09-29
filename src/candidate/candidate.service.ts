@@ -123,4 +123,24 @@ export class CandidateService {
       },
     });
   }
+
+  async apply(jobId: string, candidateId: string, resumeId: string) {
+    return this.prismaService.application.create({
+      data: {
+        resume_id: resumeId,
+        application_status: 'application_recieved',
+        last_updated: new Date(),
+        job: {
+          connect: {
+            id: jobId,
+          },
+        },
+        user: {
+          connect: {
+            id: candidateId,
+          },
+        },
+      },
+    });
+  }
 }
