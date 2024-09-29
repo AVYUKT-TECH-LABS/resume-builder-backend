@@ -50,7 +50,6 @@ export class MagicLoginStrategy extends PassportStrategy(
     code: string;
   }) {
     const { destination, usertype, name } = payload;
-
     const user = await this.authService.validateUserCallback(
       destination,
       usertype,

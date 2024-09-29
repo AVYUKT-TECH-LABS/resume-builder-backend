@@ -129,28 +129,28 @@ export class AuthService {
     return user;
   }
 
-  async validateUserCallback(email: string, userType: UserType, name: string) {
+  async validateUserCallback(
+    email: string,
+    userType: UserType,
+    name: string,
+  ): Promise<Employer | User | null> {
     const user = await this.findUser(email, userType);
 
-    let newUser: Employer | User | null = null;
-
-    if (!user) {
-      if (userType === UserType.CANDIDATE) {
-        newUser = await this.candidateService.create({
-          email,
-          name,
-        });
-      }
-
-      if (userType === UserType.EMPLOYER) {
-        newUser = await this.employerService.createEmployeeWithoutCompany({
-          email,
-          name,
-        });
-      }
+    if (user) {
+      return user;
     }
 
-    return newUser;
+    switch (userType) {
+      case UserType.CANDIDATE:
+        return await this.candidateService.create({ email, name });
+      case UserType.EMPLOYER:
+        return await this.employerService.createEmployeeWithoutCompany({
+          email,
+          name,
+        });
+      default:
+        throw new Error(`Invalid user type: ${userType}`);
+    }
   }
 
   async generateTokens(

@@ -171,7 +171,6 @@ export class AuthController {
       throw new UnauthorizedException('No user from magic link');
     }
 
-    console.log(req.user);
     const result = await this.authService.generateTokens(
       req.user,
       'EMAIL_PASSWORD',
