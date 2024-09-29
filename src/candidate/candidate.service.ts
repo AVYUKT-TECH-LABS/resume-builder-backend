@@ -83,6 +83,19 @@ export class CandidateService {
         ...where,
         is_deleted: false,
       },
+      select: {
+        id: true,
+        job_title: true,
+        fixed_salary: true,
+        work_location_type: true,
+        job_type: true,
+        Organization: {
+          select: {
+            name: true,
+            logo_url: true,
+          },
+        },
+      },
     });
   }
 
