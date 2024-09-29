@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { EmployerService } from 'src/employer/employer.service';
+import { EmployerService } from '../employer/employer.service';
 
 @Injectable()
 export class OnboardingGuard implements CanActivate {

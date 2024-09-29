@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ExperienceLevel, JobType, Prisma } from '@prisma/client';
-import { CandidateEmailSignupDto } from 'src/employer/dto/email.signup.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { CandidateEmailSignupDto } from '../employer/dto/email.signup.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class CandidateService {

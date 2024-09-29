@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CloudService } from 'src/cloud/cloud.service';
+import { CloudService } from '../cloud/cloud.service';
 
 @Injectable()
 export class NotificationService {
