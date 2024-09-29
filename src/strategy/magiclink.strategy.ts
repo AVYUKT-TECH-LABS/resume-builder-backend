@@ -34,7 +34,7 @@ export class MagicLoginStrategy extends PassportStrategy(
         this.notificationService.sendMail('emails-queue', {
           body: `This is your magic login link: ${href}`,
           subject: `Magic Link Login`,
-          to: 'shivamtaneja.me@gmail.com',
+          to: destination,
         });
       },
       verify: async (payload, callback) => {
