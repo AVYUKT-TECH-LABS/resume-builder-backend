@@ -121,7 +121,7 @@ export class PaymentsService {
         planId,
         pg_orderId: orderId,
         pg,
-        amount,
+        amount: String(amount),
         currency,
         status,
         user: {
