@@ -105,7 +105,7 @@ export class AuthService {
     };
   }
 
-  async findUser(email: string, userType: UserType) {
+  async findUser(email: string, userType: UserType): Promise<User | Employer> {
     let user: Employer | User | null = null;
 
     if (userType === UserType.EMPLOYER) {
@@ -153,15 +153,34 @@ export class AuthService {
     }
   }
 
+  async googleLogin(req): Promise<User> {
+    if (!req.user) {
+      throw new UnauthorizedException('Failed to login');
+    }
+
+    const user = await this.findUser(req.user.email, UserType.CANDIDATE);
+
+    if (user) {
+      return user as User;
+    }
+
+    return this.candidateService.create({
+      email: req.user.email,
+      name: `${req.user.firstName} ${req.user.lastName}`,
+      imageUrl: req.user.picture,
+      provider: 'GOOGLE',
+    });
+  }
+
   async generateTokens(
-    auth_user: any,
+    auth_user: { userType: UserType; email: string },
     provider?: Pick<User, 'provider'>['provider'],
   ) {
-    const { usertype, email } = auth_user;
+    const { userType, email } = auth_user;
 
     let user: Employer | User | null;
 
-    if (usertype === UserType.EMPLOYER) {
+    if (userType === UserType.EMPLOYER) {
       user = await this.employerService.findEmployeeByEmail(email);
 
       if (user.provider != provider) {
@@ -171,20 +190,19 @@ export class AuthService {
       }
     }
 
-    if (usertype === UserType.CANDIDATE) {
+    if (userType === UserType.CANDIDATE) {
       user = await this.candidateService.findUserByEmail(email);
-
-      if (user.provider != provider) {
-        throw new UnauthorizedException(
-          'A user with that email already exists with different account provider',
-        );
-      }
+      // if (user.provider != provider) {
+      //   throw new UnauthorizedException(
+      //     'A user with that email already exists with different account provider',
+      //   );
+      // }
     }
 
     const payload = {
       sub: auth_user.email,
       id: user ? user.id : null,
-      role: usertype,
+      role: userType,
     };
 
     return {

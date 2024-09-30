@@ -141,10 +141,11 @@ export class PaymentsService {
     });
   }
 
-  async getOrderStatus(orderId: string) {
+  async getOrderStatus(orderId: string, userId: string) {
     return this.prisma.order.findUnique({
       where: {
         pg_orderId: orderId,
+        userId,
       },
       select: {
         status: true,

@@ -26,9 +26,11 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthGuard as CommonGuard } from '../guards/auth.guard';
-import { MagicLoginStrategy } from '../strategy/magiclink.strategy';
+import { MagicLoginStrategy } from './strategies/magiclink.strategy';
 import { AuthService } from './auth.service';
 import { UserType } from './types/index.type';
+import { GoogleOAuthGuard } from '../guards/google.guard';
+import { LinkedinOAuthGuard } from '../guards/linkedin.guard';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -38,6 +40,78 @@ export class AuthController {
     private configService: ConfigService,
     private magicStrategy: MagicLoginStrategy,
   ) {}
+
+  @Get('google')
+  @UseGuards(GoogleOAuthGuard)
+  async googleAuth() {}
+
+  @Get('linkedin')
+  @UseGuards(LinkedinOAuthGuard)
+  async linkedinAuth() {}
+
+  @Get('google/redirect')
+  @UseGuards(GoogleOAuthGuard)
+  async googleAuthRedirect(
+    @Req() req,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    try {
+      const user = await this.authService.googleLogin(req);
+      const result = await this.authService.generateTokens(
+        {
+          email: user.email,
+          userType: UserType.CANDIDATE,
+        },
+        'GOOGLE',
+      );
+
+      res.cookie(
+        this.configService.get<string>('JWT_COOKIE_NAME'),
+        result.access_token,
+        {
+          httpOnly: true,
+          secure: true,
+          maxAge: 1000 * 60 * 60 * 24 * 30,
+        },
+      );
+      return res.redirect(`${this.configService.get('FRONTEND_URL')}/auth`);
+    } catch (err) {
+      console.log(err);
+      throw new Error('Failed to login with google');
+    }
+  }
+
+  @Get('linkedin/redirect')
+  @UseGuards(LinkedinOAuthGuard)
+  async linkedinAuthRedirect(
+    @Req() req,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    try {
+      const user = await this.authService.googleLogin(req);
+      const result = await this.authService.generateTokens(
+        {
+          email: user.email,
+          userType: UserType.CANDIDATE,
+        },
+        'GOOGLE',
+      );
+
+      res.cookie(
+        this.configService.get<string>('JWT_COOKIE_NAME'),
+        result.access_token,
+        {
+          httpOnly: true,
+          secure: true,
+          maxAge: 1000 * 60 * 60 * 24 * 30,
+        },
+      );
+      return res.redirect(`${this.configService.get('FRONTEND_URL')}/auth`);
+    } catch (err) {
+      console.log(err);
+      throw new Error('Failed to login with google');
+    }
+  }
 
   @Post('employer/sign-up')
   @UsePipes(new ValidationPipe())
@@ -166,13 +240,16 @@ export class AuthController {
 
   @Get('login/callback')
   @UseGuards(AuthGuard('magic-login'))
-  async test(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  async magicCallback(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     if (!req.user) {
       throw new UnauthorizedException('No user from magic link');
     }
 
     const result = await this.authService.generateTokens(
-      req.user,
+      req.user as never,
       'EMAIL_PASSWORD',
     );
 

@@ -107,10 +107,10 @@ export class ResumeController {
   }
 
   @Post('upload')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadResume(
-    @GetUser() user: User,
+    @Req() req: Request,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -129,7 +129,7 @@ export class ResumeController {
         throw new BadRequestException('No file uploaded');
       }
 
-      const userId = user.id || 'GUEST_USER';
+      const userId = req.candidate.id || 'GUEST_USER';
 
       return this.resumeService.uploadResume(userId, file);
     } catch (err) {

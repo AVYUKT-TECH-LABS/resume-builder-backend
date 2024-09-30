@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import _puppeteer from './puppeteer';
+import session from 'express-session';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,6 +15,14 @@ async function bootstrap() {
 
   // Check the environment
   const isDevelopment = process.env.NODE_ENV === 'development';
+
+  app.use(
+    session({
+      secret: 'session-secret',
+      resave: false,
+      saveUninitialized: false,
+    }),
+  );
 
   app.enableCors({
     origin: (origin, callback) => {

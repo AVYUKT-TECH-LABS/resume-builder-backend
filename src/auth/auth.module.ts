@@ -4,9 +4,11 @@ import { CandidateModule } from '../candidate/candidate.module';
 import { EmployerModule } from '../employer/employer.module';
 import { NotificationModule } from '../notification/notification.module';
 import { PrismaModule } from '../prisma/prisma.module';
-import { MagicLoginStrategy } from '../strategy/magiclink.strategy';
+import { MagicLoginStrategy } from './strategies/magiclink.strategy';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { GoogleStrategy } from './strategies/google.strategy';
+import { LinkedinStrategy } from './strategies/linkedin.strategy';
 
 @Module({
   imports: [
@@ -17,6 +19,11 @@ import { AuthService } from './auth.service';
     JwtModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, MagicLoginStrategy],
+  providers: [
+    AuthService,
+    MagicLoginStrategy,
+    GoogleStrategy,
+    LinkedinStrategy,
+  ],
 })
 export class AuthModule {}

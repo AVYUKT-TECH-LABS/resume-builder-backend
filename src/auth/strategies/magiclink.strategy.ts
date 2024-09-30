@@ -2,9 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import Strategy from 'passport-magic-login';
-import { NotificationService } from '../notification/notification.service';
-import { AuthService } from '../auth/auth.service';
-import { UserType } from '../auth/types/index.type';
+import { NotificationService } from '../../notification/notification.service';
+import { AuthService } from '../auth.service';
+import { UserType } from '../types/index.type';
 
 @Injectable()
 export class MagicLoginStrategy extends PassportStrategy(
