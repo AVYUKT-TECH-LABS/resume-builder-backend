@@ -25,5 +25,6 @@ import { JwtModule } from '@nestjs/jwt';
   ],
   controllers: [CandidatesDatabaseController],
   providers: [CandidatesDatabaseService],
+  exports: [CandidatesDatabaseService],
 })
 export class CandidatesDatabaseModule {}

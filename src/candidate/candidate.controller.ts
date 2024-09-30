@@ -54,6 +54,7 @@ export class CandidateController {
   }
 
   @Post('/job/:id')
+  @UseGuards(CandidateJwtAuthGuard)
   async apply(
     @Req() req: Request,
     @Param('id') id: string,

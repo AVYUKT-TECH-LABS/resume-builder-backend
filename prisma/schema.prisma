@@ -178,6 +178,7 @@ model Application {
   cover_letter       String?
   created_at         DateTime          @default(now())
   updated_at         DateTime          @updatedAt
+  score              Int               @default(0)
 
   @@index([userId])
   @@index([jobId])

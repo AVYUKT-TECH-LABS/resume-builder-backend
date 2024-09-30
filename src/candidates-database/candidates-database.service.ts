@@ -92,7 +92,7 @@ export class CandidatesDatabaseService {
         },
       );
 
-      return applicationScores[0].score;
+      return applicationScores;
     } catch (err) {
       this.logger.log('Failed to search candidates', err);
       throw err;
@@ -205,7 +205,7 @@ export class CandidatesDatabaseService {
     pageSize: number = 10,
     matchQuery?: Record<string, any>,
   ) {
-    const aggregationPipeline = [
+    const aggregationPipeline: any[] = [
       {
         $vectorSearch: {
           index: 'vector_index',
@@ -215,6 +215,15 @@ export class CandidatesDatabaseService {
           numCandidates: Math.min(Math.max(pageSize * page * 2, 2000), 10000),
         },
       },
+    ];
+
+    if (matchQuery) {
+      aggregationPipeline.push({
+        $match: matchQuery,
+      });
+    }
+
+    aggregationPipeline.push(
       {
         $sort: {
           score: -1,
@@ -246,34 +255,29 @@ export class CandidatesDatabaseService {
           score: -1, // Sort again to get the overall top matches
         },
       },
-    ];
-
-    if (matchQuery)
-      aggregationPipeline.push({
-        $match: matchQuery,
-      } as never);
+    );
 
     // Execute the aggregation pipeline to get the total count
-    const countResult = await this.resumeModel.aggregate([
-      ...(aggregationPipeline as never),
-      { $count: 'totalCount' },
-    ]);
+    const countResult = await this.resumeModel.aggregate(
+      aggregationPipeline.concat([{ $count: 'totalCount' }]),
+    );
 
     const totalCount = countResult.length > 0 ? countResult[0].totalCount : 0;
 
     // Execute the aggregation pipeline with pagination
-    const results = await this.resumeModel.aggregate([
-      ...(aggregationPipeline as never),
-      { $skip: (page - 1) * pageSize },
-      { $limit: pageSize },
-      {
-        $project: {
-          _id: 1,
-          userId: 1,
-          score: 1,
+    const results = await this.resumeModel.aggregate(
+      aggregationPipeline.concat([
+        { $skip: (page - 1) * pageSize },
+        { $limit: pageSize },
+        {
+          $project: {
+            _id: 1,
+            userId: 1,
+            score: 1,
+          },
         },
-      },
-    ]);
+      ]),
+    );
 
     return {
       results,

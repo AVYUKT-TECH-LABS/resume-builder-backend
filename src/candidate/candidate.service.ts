@@ -1,11 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { ExperienceLevel, JobType, Prisma } from '@prisma/client';
+import {
+  ApplicationStatus,
+  ExperienceLevel,
+  JobType,
+  Prisma,
+} from '@prisma/client';
 import { CandidateEmailSignupDto } from '../employer/dto/email.signup.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { CandidatesDatabaseService } from '../candidates-database/candidates-database.service';
 
 @Injectable()
 export class CandidateService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private databaseService: CandidatesDatabaseService,
+  ) {}
 
   async create(data: Prisma.UserCreateInput) {
     return this.prismaService.user.create({
@@ -117,19 +126,66 @@ export class CandidateService {
   }
 
   async getApplications(candidateId: string) {
-    return this.prismaService.application.findMany({
+    const applications = await this.prismaService.application.findMany({
       where: {
         userId: candidateId,
       },
+      include: {
+        job: {
+          select: {
+            job_title: true,
+            Organization: {
+              select: {
+                name: true,
+                logo_url: true,
+              },
+            },
+          },
+        },
+      },
     });
+
+    const applicationsByStatus: Partial<Record<ApplicationStatus, any[]>> = {};
+
+    // Initialize arrays for each status
+    for (const status in ApplicationStatus) {
+      if (isNaN(Number(status))) {
+        applicationsByStatus[ApplicationStatus[status]] = [];
+      }
+    }
+
+    for (const application of applications) {
+      const status = application.application_status;
+      if (!applicationsByStatus[status]) {
+        applicationsByStatus[status] = [];
+      }
+
+      applicationsByStatus[status].push({
+        id: application.id,
+        jobTitle: application.job.job_title,
+        companyName: application.job.Organization.name,
+        lastUpdated: application.last_updated,
+        score: application.score,
+      });
+    }
+
+    return applicationsByStatus;
   }
 
   async apply(jobId: string, candidateId: string, resumeId: string) {
+    // const score = await this.databaseService.getScore(
+    //   candidateId,
+    //   resumeId,
+    //   jobId,
+    // );
+
+    // console.log(score);
     return this.prismaService.application.create({
       data: {
         resume_id: resumeId,
         application_status: 'application_recieved',
         last_updated: new Date(),
+        // score,
         job: {
           connect: {
             id: jobId,

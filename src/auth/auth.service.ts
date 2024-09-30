@@ -173,14 +173,14 @@ export class AuthService {
   }
 
   async generateTokens(
-    auth_user: { userType: UserType; email: string },
+    auth_user: { userType?: UserType; usertype?: UserType; email: string },
     provider?: Pick<User, 'provider'>['provider'],
   ) {
-    const { userType, email } = auth_user;
+    const { userType, email, usertype } = auth_user;
 
     let user: Employer | User | null;
 
-    if (userType === UserType.EMPLOYER) {
+    if (userType === UserType.EMPLOYER || usertype === UserType.EMPLOYER) {
       user = await this.employerService.findEmployeeByEmail(email);
 
       if (user.provider != provider) {
@@ -190,7 +190,7 @@ export class AuthService {
       }
     }
 
-    if (userType === UserType.CANDIDATE) {
+    if (userType === UserType.CANDIDATE || usertype === UserType.CANDIDATE) {
       user = await this.candidateService.findUserByEmail(email);
       // if (user.provider != provider) {
       //   throw new UnauthorizedException(
@@ -202,7 +202,7 @@ export class AuthService {
     const payload = {
       sub: auth_user.email,
       id: user ? user.id : null,
-      role: userType,
+      role: userType || usertype,
     };
 
     return {

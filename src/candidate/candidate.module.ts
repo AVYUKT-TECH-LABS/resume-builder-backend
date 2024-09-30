@@ -5,6 +5,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { CandidateController } from './candidate.controller';
 import { CandidateService } from './candidate.service';
 import { JobsModule } from '../jobs/jobs.module';
+import { CandidatesDatabaseModule } from '../candidates-database/candidates-database.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { JobsModule } from '../jobs/jobs.module';
       inject: [ConfigService],
     }),
     JobsModule,
+    CandidatesDatabaseModule,
   ],
   controllers: [CandidateController],
   providers: [CandidateService],

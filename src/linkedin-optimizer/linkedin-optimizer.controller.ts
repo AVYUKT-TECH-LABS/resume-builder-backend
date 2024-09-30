@@ -1,4 +1,3 @@
-import { User } from '@clerk/clerk-sdk-node';
 import {
   BadRequestException,
   Controller,
@@ -9,8 +8,9 @@ import {
   NotFoundException,
   Param,
   UseGuards,
+  Req,
 } from '@nestjs/common';
-import { GetUser } from '../decorators/user.decorator';
+import { Request } from 'express';
 import { CandidateJwtAuthGuard } from '../guards/candidate.auth.guard';
 import { LinkedinOptimizerService } from './linkedin-optimizer.service';
 
@@ -25,17 +25,17 @@ export class LinkedinOptimizerController {
   @Get('scan/:uploadId')
   async scanProfile(
     @Param('uploadId') uploadId: string,
-    @GetUser() user: User,
+    @Req() { candidate }: Request,
   ) {
     try {
       const hasEnoughCredits = await this.linkedinOptimizerService.hasCredits(
-        user.id,
+        candidate.id,
         50,
       );
       if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
       const scanResults = await this.linkedinOptimizerService.scan(
         uploadId,
-        user.id,
+        candidate.id,
       );
 
       return scanResults;
