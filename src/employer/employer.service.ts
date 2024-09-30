@@ -71,6 +71,12 @@ export class EmployerService {
         created_at: true,
         is_deleted: true,
         deleted_at: true,
+        Organization: {
+          select: {
+            name: true,
+            logo_url: true,
+          },
+        },
         _count: {
           select: {
             applications: true,
