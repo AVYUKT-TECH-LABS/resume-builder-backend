@@ -72,7 +72,7 @@ export class AuthController {
           httpOnly: true,
           secure: true,
           maxAge: 1000 * 60 * 60 * 24 * 30,
-          domain: '.talentxcel.net',
+          domain: this.configService.get('COOKIE_DOMAIN'),
         },
       );
       return res.redirect(`${this.configService.get('FRONTEND_URL')}/auth`);
@@ -105,7 +105,7 @@ export class AuthController {
           httpOnly: true,
           secure: true,
           maxAge: 1000 * 60 * 60 * 24 * 30,
-          domain: '.talentxcel.net',
+          domain: this.configService.get('COOKIE_DOMAIN'),
         },
       );
       return res.redirect(`${this.configService.get('FRONTEND_URL')}/auth`);
@@ -262,7 +262,7 @@ export class AuthController {
         httpOnly: true,
         secure: true,
         maxAge: 1000 * 60 * 60 * 24 * 30,
-        domain: '.talentxcel.net',
+        domain: this.configService.get('COOKIE_DOMAIN'),
       },
     );
 
