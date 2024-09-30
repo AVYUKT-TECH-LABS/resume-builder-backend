@@ -160,13 +160,7 @@ export class CandidateService {
         applicationsByStatus[status] = [];
       }
 
-      applicationsByStatus[status].push({
-        id: application.id,
-        jobTitle: application.job.job_title,
-        companyName: application.job.Organization.name,
-        lastUpdated: application.last_updated,
-        score: application.score,
-      });
+      applicationsByStatus[status].push(application);
     }
 
     return applicationsByStatus;
