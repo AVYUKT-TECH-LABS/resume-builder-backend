@@ -47,6 +47,12 @@ export class CandidateController {
 
     return jobs;
   }
+  @Get('/aggregated/jobs/list')
+  async getAggJobs() {
+    const aggregatedJobs = await this.aggJobs.get();
+
+    return aggregatedJobs;
+  }
 
   @Get('/job/:id')
   async getJob(@Param('id') id: string) {
