@@ -80,7 +80,7 @@ export class OpenAiService {
         model: 'text-embedding-3-small',
       });
 
-      return response.data[0].embedding
+      return response.data[0].embedding;
     } catch (error) {
       console.error('Error calling OpenAI API:', error);
       throw new Error('Failed to generate embeddings from OpenAI');
@@ -131,6 +131,22 @@ export class OpenAiService {
         content: ${content}
         
         required domain: ${domain}
+      `,
+      formatter,
+    );
+
+    return output;
+  }
+  async resumeFromExisting(content: string) {
+    const formatter = {
+      name: 'resume-variation',
+      schema: ParsedResumeV2,
+    };
+
+    const output = await this.generateResponse(
+      'convert the below content of the resume in the requested format. DO NOT ASSUME ANYTHING. JUST USE THE PROVIDED DATA AND NOTHING ELSE',
+      `
+        content: ${content}
       `,
       formatter,
     );
