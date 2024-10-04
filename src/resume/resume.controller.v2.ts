@@ -150,6 +150,33 @@ export default class ResumeControllerV2 {
   }
 
   @UseGuards(CandidateJwtAuthGuard)
+  @Post('existing/create')
+  async createFromExistingResume(
+    @Req() req: Request,
+    @Body() { uploadId }: { uploadId: string },
+  ) {
+    try {
+      const isCreated = await this.resumeService.generateFromExisting(uploadId);
+
+      if (!isCreated) return 'Failed to save resume';
+
+      return {
+        _id: isCreated._id,
+      };
+    } catch (err) {
+      this.logger.error(err);
+      if (
+        err instanceof BadRequestException ||
+        err instanceof ForbiddenException
+      )
+        throw err;
+      throw new InternalServerErrorException(
+        'Failed to save resume. Please try again!',
+      );
+    }
+  }
+
+  @UseGuards(CandidateJwtAuthGuard)
   @Patch('update/:resumeId')
   async saveResume(
     @Param('resumeId') resumeId: string,

@@ -11,6 +11,40 @@ import { Upload } from '../schemas/upload.schema';
 import shortId from '../utils/shortid';
 import { CreateResumeDTO, UpdateResumeDTO } from './dto/resumev2.dto';
 
+const defaults = {
+  pageConfig: {
+    size: 'A4',
+    background: null,
+    margin: 6,
+    spacing: 0,
+    font: {
+      fontFamily:
+        '__Playfair_Display_e3a538, __Playfair_Display_Fallback_e3a538',
+      fontStyle: 'normal',
+    },
+    fontSizes: {
+      heading: 0,
+      subHeading: 0,
+      content: 16,
+      lineHeight: 1.7,
+    },
+    colors: {
+      primary: '#296d98',
+      background: '#ffffff',
+      text: '#000000',
+    },
+    template: 'clarity',
+  },
+  picture: {
+    available: false,
+    enabled: true,
+    url: 'https://st3.depositphotos.com/9998432/13335/v/450/depositphotos_133352010-stock-illustration-default-placeholder-man-and-woman.jpg',
+    size: 120,
+    radius: 20,
+    border: false,
+    grayscale: false,
+  },
+};
 @Injectable()
 export class ResumeServiceV2 {
   constructor(
@@ -126,46 +160,31 @@ export class ResumeServiceV2 {
     }
   }
 
-  async generateDomainSpecific(upload_id: string, domains: string[]) {
+  async generateFromExisting(upload_id: string) {
     const uploaded = await this.uploadModel.findById(upload_id, {
       rawContent: 1,
       userId: 1,
     });
 
-    const defaults = {
-      pageConfig: {
-        size: 'A4',
-        background: null,
-        margin: 6,
-        spacing: 0,
-        font: {
-          fontFamily:
-            '__Playfair_Display_e3a538, __Playfair_Display_Fallback_e3a538',
-          fontStyle: 'normal',
-        },
-        fontSizes: {
-          heading: 0,
-          subHeading: 0,
-          content: 16,
-          lineHeight: 1.7,
-        },
-        colors: {
-          primary: '#296d98',
-          background: '#ffffff',
-          text: '#000000',
-        },
-        template: 'clarity',
-      },
-      picture: {
-        available: false,
-        enabled: true,
-        url: 'https://st3.depositphotos.com/9998432/13335/v/450/depositphotos_133352010-stock-illustration-default-placeholder-man-and-woman.jpg',
-        size: 120,
-        radius: 20,
-        border: false,
-        grayscale: false,
-      },
-    };
+    const resume = await this.openai.resumeFromExisting(uploaded.rawContent);
+
+    const embeddings = await this.openai.generateEmbeddings(resume.plainText);
+
+    const created = await this.create(
+      { ...defaults, ...resume, embeddings },
+      uploaded.userId,
+    );
+
+    await this.createPreview(created._id as unknown as string);
+
+    return created;
+  }
+
+  async generateDomainSpecific(upload_id: string, domains: string[]) {
+    const uploaded = await this.uploadModel.findById(upload_id, {
+      rawContent: 1,
+      userId: 1,
+    });
 
     const promises = domains.map(async (domain) => {
       const resume = await this.openai.resumeForDomain(
