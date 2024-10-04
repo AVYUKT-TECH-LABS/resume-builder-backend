@@ -119,6 +119,8 @@ export class CandidateService {
           select: {
             id: true,
             description: true,
+            name: true,
+            logo_url: true,
           },
         },
       },

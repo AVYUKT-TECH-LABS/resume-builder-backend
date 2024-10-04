@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class CompanyService {
-  constructor(private prismaService: PrismaService) { }
+  constructor(private prismaService: PrismaService) {}
 
   async getCompany(id: string) {
     return this.prismaService.organization.findFirst({
@@ -19,6 +19,35 @@ export class CompanyService {
         industry: true,
         num_employees: true,
         website: true,
+        jobs: {
+          select: {
+            id: true,
+            company_name: true,
+            job_title: true,
+            work_location_type: true,
+            office_address: true,
+            fixed_salary: true,
+            experience_level: true,
+          },
+          where: {
+            is_deleted: false,
+            status: 'active',
+          },
+        },
+        employers: {
+          select: {
+            id: true,
+            name: true,
+            imageUrl: true,
+            hasImage: true,
+          },
+          where: {
+            banned: false,
+            locked: false,
+            is_deleted: false,
+            // is_verified: true
+          },
+        },
         org_social_links: {
           select: {
             facebook: true,
