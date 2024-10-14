@@ -1,291 +1,310 @@
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+    provider = "mysql"
+    url      = env("DATABASE_URL")
 }
 
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
-  name         String
-  provider_id  String?       @unique
-  clerkId      String?       @unique
-  provider     AuthProvider  @default(EMAIL_PASSWORD)
-  applications Application[]
-  credits      Int           @default(0)
-  created_at   DateTime      @default(now())
-  updated_at   DateTime      @updatedAt
-  Order        Order[]
-  imageUrl     String?
-  banned       Boolean       @default(false)
-  locked       Boolean       @default(false)
-  hasImage     Boolean       @default(false)
-  lastSignInAt DateTime?
-  lastActiveAt DateTime?
+    id           String        @id @default(uuid())
+    email        String        @unique
+    name         String
+    provider_id  String?       @unique
+    clerkId      String?       @unique
+    provider     AuthProvider  @default(EMAIL_PASSWORD)
+    applications Application[]
+    credits      Int           @default(0)
+    created_at   DateTime      @default(now())
+    updated_at   DateTime      @updatedAt
+    Order        Order[]
+    imageUrl     String?
+    banned       Boolean       @default(false)
+    locked       Boolean       @default(false)
+    hasImage     Boolean       @default(false)
+    lastSignInAt DateTime?
+    lastActiveAt DateTime?
 
-  @@index([email])
-  @@index([id])
+    @@index([email])
+    @@index([id])
 }
 
 model Organization {
-  id               String             @id @default(uuid())
-  name             String
-  logo_url         String
-  description      String
-  city             String
-  industry         String
-  num_employees    String
-  website          String
-  is_deleted       Boolean            @default(false)
-  is_verified      Boolean            @default(false)
-  org_reviews      org_reviews[]
-  org_social_links org_social_links[]
-  jobs             Job[]
-  isSubscribed     Boolean            @default(false)
-  listingsLeft     Int                @default(2)
-  mailDomain       String?            @unique
-  lastListingDate  DateTime?
-  employers        Employer[]
-  created_at       DateTime           @default(now())
-  updated_at       DateTime           @updatedAt
-  deleted_at       DateTime?
+    id               String             @id @default(uuid())
+    name             String
+    logo_url         String
+    description      String
+    city             String
+    industry         String
+    num_employees    String
+    website          String
+    is_deleted       Boolean            @default(false)
+    is_verified      Boolean            @default(false)
+    org_reviews      org_reviews[]
+    org_social_links org_social_links[]
+    jobs             Job[]
+    isSubscribed     Boolean            @default(false)
+    listingsLeft     Int                @default(2)
+    mailDomain       String?            @unique
+    lastListingDate  DateTime?
+    employers        Employer[]
+    created_at       DateTime           @default(now())
+    updated_at       DateTime           @updatedAt
+    deleted_at       DateTime?
 
-  @@index([name])
+    @@index([name])
 }
 
 model Employer {
-  id               String        @id @default(uuid())
-  email            String        @unique
-  name             String
-  provider_id      String?       @unique
-  provider         AuthProvider  @default(EMAIL_PASSWORD)
-  organization     Organization? @relation(fields: [organization_id], references: [id])
-  organization_id  String?
-  jobs             Job[]
-  is_deleted       Boolean       @default(false)
-  deletion_message String?       @default("")
-  is_verified      Boolean       @default(false)
-  created_at       DateTime      @default(now())
-  updated_at       DateTime      @updatedAt
-  deleted_at       DateTime?
-  clerkId          String?       @unique
-  imageUrl         String?
-  banned           Boolean       @default(false)
-  locked           Boolean       @default(false)
-  hasImage         Boolean       @default(false)
-  lastSignInAt     DateTime?
-  lastActiveAt     DateTime?
+    id               String        @id @default(uuid())
+    email            String        @unique
+    name             String
+    provider_id      String?       @unique
+    provider         AuthProvider  @default(EMAIL_PASSWORD)
+    organization     Organization? @relation(fields: [organization_id], references: [id])
+    organization_id  String?
+    jobs             Job[]
+    is_deleted       Boolean       @default(false)
+    deletion_message String?       @default("")
+    is_verified      Boolean       @default(false)
+    created_at       DateTime      @default(now())
+    updated_at       DateTime      @updatedAt
+    deleted_at       DateTime?
+    clerkId          String?       @unique
+    imageUrl         String?
+    banned           Boolean       @default(false)
+    locked           Boolean       @default(false)
+    hasImage         Boolean       @default(false)
+    lastSignInAt     DateTime?
+    lastActiveAt     DateTime?
+    Batch            Batch[]
 
-  @@index([organization_id])
-  @@index([email])
+    @@index([organization_id])
+    @@index([email])
+}
+
+model Batch {
+    id         String      @id @default(uuid())
+    employerId String
+    employer   Employer    @relation(fields: [employerId], references: [id])
+    uploads    Json?
+    createdAt  DateTime    @default(now())
+    updatedAt  DateTime    @updatedAt
+    status     BatchStatus @default(created)
+}
+
+enum BatchStatus {
+    created
+    uploaded
+    processing
+    processed
+    cancelled
 }
 
 //org reviews
 model org_reviews {
-  id              String       @id @default(uuid())
-  review          String
-  rating          Int
-  is_deleted      Boolean      @default(false)
-  created_at      DateTime     @default(now())
-  updated_at      DateTime     @updatedAt
-  deleted_at      DateTime?
-  organization    Organization @relation(fields: [organization_id], references: [id])
-  organization_id String
+    id              String       @id @default(uuid())
+    review          String
+    rating          Int
+    is_deleted      Boolean      @default(false)
+    created_at      DateTime     @default(now())
+    updated_at      DateTime     @updatedAt
+    deleted_at      DateTime?
+    organization    Organization @relation(fields: [organization_id], references: [id])
+    organization_id String
 }
 
 model org_social_links {
-  //org_social_links
-  id              String       @id @default(uuid())
-  facebook        String?
-  twitter         String?
-  instagram       String?
-  linkedin        String?
-  youtube         String?
-  created_at      DateTime     @default(now())
-  updated_at      DateTime     @updatedAt
-  organization    Organization @relation(fields: [organization_id], references: [id])
-  organization_id String
+    //org_social_links
+    id              String       @id @default(uuid())
+    facebook        String?
+    twitter         String?
+    instagram       String?
+    linkedin        String?
+    youtube         String?
+    created_at      DateTime     @default(now())
+    updated_at      DateTime     @updatedAt
+    organization    Organization @relation(fields: [organization_id], references: [id])
+    organization_id String
 }
 
 model Job {
-  id                    String           @id @default(cuid())
-  employer              Employer         @relation(fields: [employerId], references: [id])
-  employerId            String
-  status                JobStatus
-  company_name          String
-  job_title             String
-  job_type              JobType
-  is24_7                Boolean
-  work_location_type    WorkLocationType
-  office_address        String?
-  pay_type              PayType
-  fixed_salary          String?
-  avg_incentive         String?
-  perks                 String?
-  joining_fee_required  Boolean
-  joining_fee           String?
-  minimum_edu           EducationLevel
-  english_level         EnglishLevel
-  experience_level      ExperienceLevel
-  total_experience      String?
-  gender                Gender?
-  age                   String?
-  regional_languages    String?
-  required_assets       String?
-  skills                String?
-  jd                    String
-  interview_type        InterviewType
-  interview_address     String?
-  walk_in_start_date    String?
-  walk_in_end_date      String?
-  walk_in_timings       String?
-  other_instructions    String?
-  online_interview_link String?
-  is_deleted            Boolean          @default(false)
-  deleted_at            DateTime?
-  created_at            DateTime         @default(now())
-  updated_at            DateTime         @updatedAt
-  applications          Application[]
-  Organization          Organization     @relation(fields: [organizationId], references: [id])
-  organizationId        String
+    id                    String           @id @default(cuid())
+    employer              Employer         @relation(fields: [employerId], references: [id])
+    employerId            String
+    status                JobStatus
+    company_name          String
+    job_title             String
+    job_type              JobType
+    is24_7                Boolean
+    work_location_type    WorkLocationType
+    office_address        String?
+    pay_type              PayType
+    fixed_salary          String?
+    avg_incentive         String?
+    perks                 String?
+    joining_fee_required  Boolean
+    joining_fee           String?
+    minimum_edu           EducationLevel
+    english_level         EnglishLevel
+    experience_level      ExperienceLevel
+    total_experience      String?
+    gender                Gender?
+    age                   String?
+    regional_languages    String?
+    required_assets       String?
+    skills                String?
+    jd                    String
+    interview_type        InterviewType
+    interview_address     String?
+    walk_in_start_date    String?
+    walk_in_end_date      String?
+    walk_in_timings       String?
+    other_instructions    String?
+    online_interview_link String?
+    is_deleted            Boolean          @default(false)
+    deleted_at            DateTime?
+    created_at            DateTime         @default(now())
+    updated_at            DateTime         @updatedAt
+    applications          Application[]
+    Organization          Organization     @relation(fields: [organizationId], references: [id])
+    organizationId        String
 
-  @@index([employerId])
+    @@index([employerId])
 }
 
 model AggregatedJob {
-  id       String @id
-  title    String
-  company  String
-  location String
-  link     String
-  platform String
+    id       String @id
+    title    String
+    company  String
+    location String
+    link     String
+    platform String
 }
 
 // model ResumeProcessing{}
 
 model Application {
-  id                 String            @id @default(uuid())
-  user               User              @relation(fields: [userId], references: [id])
-  userId             String
-  job                Job               @relation(fields: [jobId], references: [id])
-  jobId              String
-  application_status ApplicationStatus
-  last_updated       DateTime
-  resume_id          String
-  cover_letter       String?
-  created_at         DateTime          @default(now())
-  updated_at         DateTime          @updatedAt
-  score              Int               @default(0)
+    id                 String            @id @default(uuid())
+    user               User              @relation(fields: [userId], references: [id])
+    userId             String
+    job                Job               @relation(fields: [jobId], references: [id])
+    jobId              String
+    application_status ApplicationStatus
+    last_updated       DateTime
+    resume_id          String
+    cover_letter       String?
+    created_at         DateTime          @default(now())
+    updated_at         DateTime          @updatedAt
+    score              Int               @default(0)
 
-  @@index([userId])
-  @@index([jobId])
+    @@index([userId])
+    @@index([jobId])
 }
 
 model Order {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  planId     String
-  pg_orderId String   @unique
-  pg         String
-  amount     String
-  currency   String
-  status     String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+    id         String   @id @default(cuid())
+    userId     String
+    user       User     @relation(fields: [userId], references: [id])
+    planId     String
+    pg_orderId String   @unique
+    pg         String
+    amount     String
+    currency   String
+    status     String
+    created_at DateTime @default(now())
+    updated_at DateTime @updatedAt
 
-  @@index([userId])
-  @@index([planId])
+    @@index([userId])
+    @@index([planId])
 }
 
 model Plan {
-  id             String   @id @default(cuid())
-  name           String   @unique
-  amount         Int
-  display_amount Int
-  credits        Int
-  description    String?
-  isActive       Boolean  @default(true)
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+    id             String   @id @default(cuid())
+    name           String   @unique
+    amount         Int
+    display_amount Int
+    credits        Int
+    description    String?
+    isActive       Boolean  @default(true)
+    created_at     DateTime @default(now())
+    updated_at     DateTime @updatedAt
 }
 
 enum AuthProvider {
-  EMAIL_PASSWORD
-  GOOGLE
-  LINKEDIN
+    EMAIL_PASSWORD
+    GOOGLE
+    LINKEDIN
 }
 
 enum ApplicationStatus {
-  application_recieved
-  under_review
-  shortlisted
-  assessment_scheduled
-  interview_scheduled
-  interview_in_progress
-  interview_completed
-  offer_made
-  offer_accepted
-  offer_rejected
-  hired
-  rejected
-  on_hold
+    application_recieved
+    under_review
+    shortlisted
+    assessment_scheduled
+    interview_scheduled
+    interview_in_progress
+    interview_completed
+    offer_made
+    offer_accepted
+    offer_rejected
+    hired
+    rejected
+    on_hold
 }
 
 enum JobStatus {
-  active
-  paused
-  closed
+    active
+    paused
+    closed
 }
 
 enum JobType {
-  full_time
-  part_time
-  both
+    full_time
+    part_time
+    both
 }
 
 enum WorkLocationType {
-  hybrid
-  remote
+    hybrid
+    remote
 }
 
 enum PayType {
-  fixed_only
-  fixed_and_incentive
-  incentive_only
+    fixed_only
+    fixed_and_incentive
+    incentive_only
 }
 
 enum EducationLevel {
-  ten_or_below_10
-  twelve_pass
-  diploma
-  graduate
+    ten_or_below_10
+    twelve_pass
+    diploma
+    graduate
 }
 
 enum EnglishLevel {
-  NA
-  basic
-  intermediate
-  proficient
+    NA
+    basic
+    intermediate
+    proficient
 }
 
 enum ExperienceLevel {
-  freshers
-  intermediate
-  experts
+    freshers
+    intermediate
+    experts
 }
 
 enum Gender {
-  male
-  female
-  both
+    male
+    female
+    both
 }
 
 enum InterviewType {
-  in_person
-  walk_in
-  telephonic_online
+    in_person
+    walk_in
+    telephonic_online
 }

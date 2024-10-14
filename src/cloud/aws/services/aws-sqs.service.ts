@@ -9,10 +9,7 @@ export class AwsSQSService implements ISqsService {
     credentials: fromEnv(),
   });
 
-  async sendMessage(
-    queueName: string,
-    data: { to: string; subject: string; body: string },
-  ): Promise<string> {
+  async sendMessage(queueName: string, data: any): Promise<string> {
     try {
       const command = new SendMessageCommand({
         QueueUrl: `https://sqs.ap-south-1.amazonaws.com/522814711150/${queueName}`,

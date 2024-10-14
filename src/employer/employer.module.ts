@@ -11,6 +11,8 @@ import {
 } from '../schemas/job-embeddings.schema';
 import { EmployerController } from './employer.controller';
 import { EmployerService } from './employer.service';
+import EmployerBatchController from './batches.controller';
+import { Upload, UploadSchema } from '../schemas/upload.schema';
 
 @Module({
   imports: [
@@ -27,8 +29,9 @@ import { EmployerService } from './employer.service';
     MongooseModule.forFeature([
       { name: JobEmbeddings.name, schema: JobEmbeddingsSchema },
     ]),
+    MongooseModule.forFeature([{ name: Upload.name, schema: UploadSchema }]),
   ],
-  controllers: [EmployerController],
+  controllers: [EmployerController, EmployerBatchController],
   providers: [EmployerService],
   exports: [EmployerService],
 })

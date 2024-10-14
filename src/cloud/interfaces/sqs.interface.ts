@@ -1,10 +1,3 @@
 export interface ISqsService {
-  sendMessage(
-    queueName: string,
-    data: {
-      to: string;
-      subject: string;
-      body: string;
-    },
-  ): Promise<string>;
+  sendMessage(queueName: string, data: any): Promise<string>;
 }

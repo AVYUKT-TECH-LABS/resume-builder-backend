@@ -11,12 +11,16 @@ import { EmployerEmailSignupDto } from './dto/email.signup.dto';
 import { OnBoardingDto } from './dto/onBoardDto.dto';
 import { UpdateJobApplicationDto } from './dto/update-job-application.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
+import shortId from '../utils/shortid';
+import { Upload } from '../schemas/upload.schema';
 
 @Injectable()
 export class EmployerService {
   constructor(
     @InjectModel(JobEmbeddings.name)
     private jobEmbeddingsModel: Model<JobEmbeddings>,
+    @InjectModel(Upload.name)
+    private uploadModel: Model<Upload>,
     private prismaService: PrismaService,
     private openai: OpenAiService,
     private cloud: CloudService,
@@ -265,6 +269,101 @@ export class EmployerService {
         application_status: body.application_status,
       },
     });
+  }
+
+  async createBatch(employerId: string) {
+    try {
+      const batch = await this.prismaService.batch.create({
+        data: {
+          employerId,
+        },
+      });
+
+      return batch;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async getBatch(batchId: string, employerId: string) {
+    const batch = await this.prismaService.batch.findFirst({
+      where: {
+        id: batchId,
+        employerId,
+      },
+    });
+
+    const uploads = JSON.parse(String(batch.uploads));
+    const totalUploads = uploads ? uploads.length : 0;
+
+    return {
+      ...batch,
+      totalUploads,
+      uploads: undefined,
+    };
+  }
+
+  async uploadBatchResumes(
+    employerId: string,
+    batchId: string,
+    files: Array<Express.Multer.File>,
+  ) {
+    const currentBatch = await this.prismaService.batch.findUnique({
+      where: {
+        id: batchId,
+      },
+    });
+
+    if (!batchId) throw new NotFoundException('Batch not found');
+    // Get the storage service
+    const storage = this.cloud.getStorageService();
+
+    // Use Promise.all to handle multiple file uploads concurrently
+    const uploadPromises = files.map(async (file) => {
+      // Generate a short ID for each file
+      const fileName = shortId();
+
+      // Upload the file to storage
+      const url = await storage.uploadFile(file, fileName);
+
+      // Save the upload information in the database
+      const upload = await this.uploadModel.create({
+        userId: `empl_${employerId}`,
+        storageKey: url,
+        shortId: fileName,
+      });
+
+      // Return the upload ID
+      return upload._id;
+    });
+
+    // Wait for all uploads to complete and return their IDs
+    const uploadIds = await Promise.all(uploadPromises);
+
+    //saving uploadIds to batch
+    const existingUploads = JSON.parse(String(currentBatch.uploads)) ?? [];
+    const allUploads = [...uploadIds, ...existingUploads];
+
+    await this.prismaService.batch.update({
+      where: {
+        id: batchId,
+        employerId,
+      },
+      data: {
+        uploads: JSON.stringify(allUploads),
+        status: 'uploaded',
+      },
+    });
+
+    //TODO:send batch to batch processing queue
+    const sqs = this.cloud.getSqsService();
+
+    await sqs.sendMessage('process-batch', { batchId });
+
+    return {
+      message: `Uploaded ${uploadIds.length} files`,
+      uploadIds,
+    };
   }
 
   flattenJobDto(jobDto: CreateJobDto): string {

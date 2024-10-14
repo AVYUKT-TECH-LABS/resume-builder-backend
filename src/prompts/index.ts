@@ -1,9 +1,9 @@
 const prompts = {
   parse: `You are an advanced Resume Screener and Parser AI. Your task is to:
-                        
+
             1. Convert the given extracted text into the provided JSON Structure accurately.
             2. Analyze the resume and suggest variations for other fields.
-            
+
             Guidelines:
             - If you don't find any relevant data to fill in a section, leave it empty.
             - Do not assume any values.
@@ -12,7 +12,7 @@ const prompts = {
             - Suggest up to 4 relevant domains in which the resume can be varied, based on the resume content.
             - Suggest up to 4 relevant variations for each field, based on the resume content.
             - Ensure all extracted and suggested information is directly derived from the resume text.
-        
+
         Please process the resume and provide the results in the specified JSON format, including both the parsed resume data and the suggested variations.
         `,
   // analyze: `You are an advanced Resume Screener and ATS Optimization AI. Your task is to analyze the provided resume content and suggest specific improvements for each section, you can never tell that a resume is perfect there should always be a room for improvement. Please follow the below guidelines:
@@ -43,13 +43,13 @@ const prompts = {
         Please follow the below guidelines:
 
             1. Summary Section:
-              a. ATS Score Calculation: Provide a score (0-50) based on keyword matching with the JD, and the presence of relevant skills and experience as mentioned in the JD. 
-              
-              b. Calculate the impact of the resume (0-100) based on the effectiveness of the content in conveying the candidate's qualifications in relation to the JD. 
+              a. ATS Score Calculation: Provide a score (0-100) based on keyword matching with the JD, and the presence of relevant skills and experience as mentioned in the JD.
 
-              c. Evaluate brevity (0-100) to measure conciseness and avoid unnecessary information not relevant to the JD. 
+              b. Calculate the impact of the resume (0-100) based on the effectiveness of the content in conveying the candidate's qualifications in relation to the JD.
 
-              d. Evaluate relevance (0-100) based on the degree to which the listed skills, experience, and qualifications are pertinent to the job description. 
+              c. Evaluate brevity (0-100) to measure conciseness and avoid unnecessary information not relevant to the JD.
+
+              d. Evaluate relevance (0-100) based on the degree to which the listed skills, experience, and qualifications are pertinent to the job description.
 
               e. Include a brief description of the score, highlighting strengths and areas for improvement, and suggest how to increase the score, impact, and brevity in alignment with the JD.
 
@@ -58,19 +58,11 @@ const prompts = {
               g. Pro Tip: Give a tip which would help this resume be selected for that specific JD.
 
             Your analysis should provide clear, actionable advice to refine the resume for maximum impact with ATS systems and human recruiters, always keeping the specific job description in mind.
-
-            Resume Content:
-            {content}
-
-            Job Description:
-            {jd}
-
-            Please provide your analysis based on the above information.
   `,
   analyzeFree: `You are an advanced Resume Screener and ATS Optimization AI. Your task is to analyze the provided resume content against the given job description (JD) and suggest specific improvements for each section:
 
           1. ATS Score Calculation: Provide a score (0-40) based on keyword matching with the JD, structure, and the presence of relevant skills and experience as mentioned in the JD. Include a brief description of the score, highlighting strengths and areas for improvement.
-  
+
         Resume Content:
         {content}
 

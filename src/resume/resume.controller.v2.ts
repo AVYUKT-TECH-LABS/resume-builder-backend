@@ -265,7 +265,7 @@ export default class ResumeControllerV2 {
     }
   }
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Post('write-with-ai')
   async writeWithAI(@Body() body: { content: string }) {
     try {
