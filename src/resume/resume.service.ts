@@ -333,14 +333,20 @@ export class ResumeService {
     return 'ok';
   }
 
-  async generateAnalyses(upload_id: string, isFree: boolean, jd: string) {
+  async generateAnalyses(
+    upload_id: string,
+    isFree: boolean,
+    jd: string,
+    resumeId?: string,
+  ) {
     const uploaded = await this.uploadModel.findById(upload_id, {
       rawContent: 1,
       userId: 1,
       processedContent: 1,
     });
 
-    if (uploaded.processedContent) return JSON.parse(uploaded.processedContent);
+    if (!resumeId && uploaded.processedContent)
+      return JSON.parse(uploaded.processedContent);
 
     if (Boolean(!isFree)) {
       const hasEnoughCredits = await this.resumeServiceV2.hasCredits(
@@ -348,6 +354,12 @@ export class ResumeService {
         50,
       );
       if (!hasEnoughCredits) throw new ForbiddenException('Not enough credits');
+    }
+
+    if (!resumeId) {
+      const newResume =
+        await this.resumeServiceV2.generateFromExisting(upload_id);
+      resumeId = newResume._id.toString();
     }
 
     const result = await this.openai.analyse(
@@ -360,7 +372,7 @@ export class ResumeService {
     await uploaded.updateOne({
       processedContent: JSON.stringify(result),
     });
-    return result;
+    return { ...result, resumeId };
   }
 
   async getPdf(upload_id: string) {

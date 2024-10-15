@@ -265,12 +265,20 @@ export default class ResumeControllerV2 {
     }
   }
 
-  @UseGuards(CandidateJwtAuthGuard)
+  //   @UseGuards(CandidateJwtAuthGuard)
   @Post('write-with-ai')
-  async writeWithAI(@Body() body: { content: string }) {
+  async writeWithAI(@Body() body: { content: string; jobDetails?: string }) {
     try {
-      const { content } = await this.resumeService.writeWithAI(body.content);
-      return content;
+      if (body.jobDetails) {
+        const { content } = await this.resumeService.writeWithAI(
+          body.jobDetails,
+          true,
+        );
+        return content;
+      } else {
+        const { content } = await this.resumeService.writeWithAI(body.content);
+        return content;
+      }
     } catch (err) {
       throw new InternalServerErrorException(
         'Failed to improve text...please try again',
@@ -315,6 +323,7 @@ export default class ResumeControllerV2 {
 
       return this.legacyResumeService.uploadResume(userId, mockFile);
     } catch (err) {
+      console.log(err);
       if (err instanceof BadRequestException) throw err;
       throw new InternalServerErrorException('Failed to upload resume');
     }

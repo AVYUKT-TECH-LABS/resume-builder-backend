@@ -105,7 +105,7 @@ export class EmployerController {
   async getJob(@Req() req: Request, @Param('id') id: string) {
     return this.employerService.getJob(req.employer.id, id);
   }
-
+  
   @Patch('/job/update/:id')
   @UseGuards(EmployerJwtAuthGuard)
   async updateJob(

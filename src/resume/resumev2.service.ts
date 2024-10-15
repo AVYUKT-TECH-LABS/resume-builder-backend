@@ -115,6 +115,7 @@ export class ResumeServiceV2 {
 
       return newResume;
     } catch (err) {
+      console.log(err);
       throw 'Failed to create resume';
     }
   }
@@ -226,8 +227,8 @@ export class ResumeServiceV2 {
     return url;
   }
 
-  async writeWithAI(content: string) {
-    return this.openai.improve(content);
+  async writeWithAI(content: string, isForJd: boolean = false) {
+    return this.openai.improve(content, isForJd);
   }
 
   async download(resumeId: string, userId: string, existing: boolean = false) {

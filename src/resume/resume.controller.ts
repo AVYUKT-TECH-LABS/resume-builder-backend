@@ -339,13 +339,19 @@ export class ResumeController {
   async suggestions(
     @Param('upload_id') upload_id: string,
     @Query('isFree') isFree: string,
+    @Query('resumeId') resumeId: string,
     @Body() body: { jd: string },
   ) {
-    return this.resumeService.generateAnalyses(
+    const analyses = await this.resumeService.generateAnalyses(
       upload_id,
       isFree == 'false' ? false : true,
       body.jd,
     );
+
+    return {
+      resumeId,
+      ...analyses,
+    };
   }
 
   @Get('getPdf/:upload_id')
