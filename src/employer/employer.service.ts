@@ -249,6 +249,10 @@ export class EmployerService {
         last_updated: true,
         resume_id: true,
         cover_letter: true,
+        score: true,
+      },
+      orderBy: {
+        score: 'desc',
       },
     });
 

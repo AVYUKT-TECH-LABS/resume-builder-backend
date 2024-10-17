@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ResumeV2 } from '../schemas/resume.schema.v2';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { OpenAiService } from '../openai/openai.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JobEmbeddings } from '../schemas/job-embeddings.schema';
@@ -88,7 +88,7 @@ export class CandidatesDatabaseService {
         1,
         {
           userId,
-          _id: resumeId,
+          _id: new Types.ObjectId(resumeId),
         },
       );
 

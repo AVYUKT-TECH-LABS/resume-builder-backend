@@ -79,17 +79,19 @@ export class ResumeServiceV2 {
 
   async getAll(userId: string) {
     try {
-      const resumes = await this.resumeModel.find(
-        {
-          userId,
-        },
-        {
-          'pageConfig.colors.primary': 1,
-          'sections.personalInformation.title': 1,
-          createdAt: 1,
-          updatedAt: 1,
-        },
-      );
+      const resumes = await this.resumeModel
+        .find(
+          {
+            userId,
+          },
+          {
+            'pageConfig.colors.primary': 1,
+            'sections.personalInformation.title': 1,
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        )
+        .sort({ updatedAt: -1 });
 
       if (!resumes) throw new NotFoundException('Resumes not found');
 

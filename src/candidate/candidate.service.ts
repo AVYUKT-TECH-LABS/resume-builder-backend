@@ -170,19 +170,20 @@ export class CandidateService {
   }
 
   async apply(jobId: string, candidateId: string, resumeId: string) {
-    // const score = await this.databaseService.getScore(
-    //   candidateId,
-    //   resumeId,
-    //   jobId,
-    // );
+    const scoreResult = await this.databaseService.getScore(
+      candidateId,
+      resumeId,
+      jobId,
+    );
 
-    // console.log(score);
+    const score = scoreResult.length > 0 ? scoreResult[0].score : 0;
+
     return this.prismaService.application.create({
       data: {
         resume_id: resumeId,
         application_status: 'application_recieved',
         last_updated: new Date(),
-        // score,
+        score,
         job: {
           connect: {
             id: jobId,
