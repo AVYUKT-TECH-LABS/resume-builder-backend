@@ -1,16 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
   ApplicationStatus,
   ExperienceLevel,
   JobType,
   Prisma,
 } from '@prisma/client';
-import { CandidateEmailSignupDto } from '../employer/dto/email.signup.dto';
-import { PrismaService } from '../prisma/prisma.service';
 import { CandidatesDatabaseService } from '../candidates-database/candidates-database.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateJobPreferenceDto, UpdateJobPreferenceDto } from './dro/pref.dto';
 
 @Injectable()
 export class CandidateService {
+  private readonly logger: Logger = new Logger(CandidateService.name);
   constructor(
     private prismaService: PrismaService,
     private databaseService: CandidatesDatabaseService,
@@ -194,5 +195,65 @@ export class CandidateService {
         },
       },
     });
+  }
+
+  async createPreferences(pref: CreateJobPreferenceDto, userId: string) {
+    try {
+      const newPreference = await this.prismaService.jobPreference.create({
+        data: {
+          userId,
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
+          jobType: pref.jobType,
+          minSalary: parseFloat(String(pref.minSalary)),
+          maxSalary: parseFloat(String(pref.maxSalary)),
+          location: pref.location,
+          remoteWork: pref.remoteWork,
+        },
+      });
+
+      return newPreference.id;
+    } catch (err) {
+      this.logger.log(err);
+      throw err;
+    }
+  }
+
+  async updatePreferences(pref: UpdateJobPreferenceDto, userId: string) {
+    try {
+      const user = await this.prismaService.user.findFirstOrThrow({
+        where: {
+          id: userId,
+        },
+        select: {
+          jobPreferenceId: true,
+        },
+      });
+
+      if (!user.jobPreferenceId)
+        throw new NotFoundException('Your preferences not found');
+
+      const updatedPreference = await this.prismaService.jobPreference.update({
+        where: {
+          userId,
+          id: user.jobPreferenceId,
+        },
+        data: {
+          jobType: pref.jobType,
+          minSalary: parseFloat(String(pref.minSalary)),
+          maxSalary: parseFloat(String(pref.maxSalary)),
+          location: pref.location,
+          remoteWork: pref.remoteWork,
+        },
+      });
+
+      return updatedPreference.id;
+    } catch (err) {
+      this.logger.log(err);
+      throw err;
+    }
   }
 }

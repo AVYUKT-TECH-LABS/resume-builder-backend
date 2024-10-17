@@ -8,26 +8,67 @@ datasource db {
 }
 
 model User {
-    id           String        @id @default(uuid())
-    email        String        @unique
-    name         String
-    provider_id  String?       @unique
-    clerkId      String?       @unique
-    provider     AuthProvider  @default(EMAIL_PASSWORD)
-    applications Application[]
-    credits      Int           @default(0)
-    created_at   DateTime      @default(now())
-    updated_at   DateTime      @updatedAt
-    Order        Order[]
-    imageUrl     String?
-    banned       Boolean       @default(false)
-    locked       Boolean       @default(false)
-    hasImage     Boolean       @default(false)
-    lastSignInAt DateTime?
-    lastActiveAt DateTime?
+    id              String           @id @default(uuid())
+    email           String           @unique
+    name            String
+    provider_id     String?          @unique
+    clerkId         String?          @unique
+    provider        AuthProvider     @default(EMAIL_PASSWORD)
+    applications    Application[]
+    credits         Int              @default(0)
+    created_at      DateTime         @default(now())
+    updated_at      DateTime         @updatedAt
+    Order           Order[]
+    imageUrl        String?
+    banned          Boolean          @default(false)
+    locked          Boolean          @default(false)
+    hasImage        Boolean          @default(false)
+    jobPreferences  JobPreference?   @relation(fields: [jobPreferenceId], references: [id])
+    candidateSkills CandidateSkill[]
+
+    lastSignInAt    DateTime?
+    lastActiveAt    DateTime?
+    jobPreferenceId String?
 
     @@index([email])
     @@index([id])
+}
+
+model JobPreference {
+    id         String   @id @default(uuid())
+    userId     String
+    jobType    JobType
+    minSalary  Float
+    maxSalary  Float
+    location   String
+    remoteWork Boolean  @default(false)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+    user       User[]
+}
+
+model Skill {
+    id              String           @id @default(uuid())
+    name            String           @unique
+    candidateSkills CandidateSkill[]
+}
+
+model CandidateSkill {
+    id          String      @id @default(uuid())
+    userId      String
+    skillId     String
+    proficiency Proficiency
+    user        User        @relation(fields: [userId], references: [id])
+    skill       Skill       @relation(fields: [skillId], references: [id])
+
+    @@unique([userId, skillId])
+}
+
+enum Proficiency {
+    BEGINNER
+    INTERMEDIATE
+    ADVANCED
+    EXPERT
 }
 
 model Organization {
@@ -264,6 +305,8 @@ enum JobType {
     full_time
     part_time
     both
+    contract
+    internship
 }
 
 enum WorkLocationType {

@@ -43,6 +43,7 @@ export class AuthService {
           email: true,
           id: true,
           credits: true,
+          jobPreferenceId: true,
         },
       });
     } else if (requestUser.role == 'Employer') {
