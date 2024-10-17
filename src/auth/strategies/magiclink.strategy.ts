@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import Strategy from 'passport-magic-login';
 import { NotificationService } from '../../notification/notification.service';
+import { MagicLinkEmailTempate } from '../../utils/templates';
 import { AuthService } from '../auth.service';
 import { UserType } from '../types/index.type';
 
@@ -31,8 +32,9 @@ export class MagicLoginStrategy extends PassportStrategy(
       ) => {
         href += `&role=${req.body.usertype}`;
         console.log(href);
+
         this.notificationService.sendMail('emails-queue', {
-          body: `This is your magic login link: ${href}`,
+          body: MagicLinkEmailTempate(href),
           subject: `Magic Link Login`,
           to: destination,
         });
