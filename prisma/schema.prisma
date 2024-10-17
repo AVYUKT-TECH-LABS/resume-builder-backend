@@ -211,8 +211,6 @@ model Job {
     applications          Application[]
     Organization          Organization     @relation(fields: [organizationId], references: [id])
     organizationId        String
-
-    @@index([employerId])
 }
 
 model AggregatedJob {

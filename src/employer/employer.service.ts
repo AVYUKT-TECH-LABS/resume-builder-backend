@@ -162,9 +162,7 @@ export class EmployerService {
           },
         },
         ...body,
-        jd: {
-          jd: body.jd,
-        },
+        jd: JSON.stringify(body.jd),
       },
     });
 
@@ -184,9 +182,7 @@ export class EmployerService {
     await this.prismaService.job.update({
       data: {
         ...body,
-        jd: {
-          jd: body.jd,
-        },
+        jd: JSON.stringify(body.jd),
       },
       where: {
         employerId,
@@ -438,7 +434,7 @@ export class EmployerService {
     if (skills && skills.length) jobDetails += `Skills: ${skills}\n`;
 
     // Job description
-    jobDetails += `Job Description: ${jd}\n`;
+    jobDetails += `Job Description: ${JSON.stringify(jd)}\n`;
 
     // Interview details
     jobDetails += `Interview Type: ${interview_type}\n`;
