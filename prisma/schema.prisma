@@ -196,7 +196,7 @@ model Job {
     regional_languages    String?
     required_assets       String?
     skills                String?
-    jd                    String
+    jd                    Json
     interview_type        InterviewType
     interview_address     String?
     walk_in_start_date    String?

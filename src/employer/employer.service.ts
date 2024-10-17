@@ -1,18 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import _puppeteer from '../puppeteer';
 import { CloudService } from '../cloud/cloud.service';
 import { OpenAiService } from '../openai/openai.service';
 import { PrismaService } from '../prisma/prisma.service';
+import _puppeteer from '../puppeteer';
 import { JobEmbeddings } from '../schemas/job-embeddings.schema';
+import { Upload } from '../schemas/upload.schema';
+import shortId from '../utils/shortid';
 import { CreateJobDto } from './dto/create-job.dto';
 import { EmployerEmailSignupDto } from './dto/email.signup.dto';
 import { OnBoardingDto } from './dto/onBoardDto.dto';
 import { UpdateJobApplicationDto } from './dto/update-job-application.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
-import shortId from '../utils/shortid';
-import { Upload } from '../schemas/upload.schema';
 
 @Injectable()
 export class EmployerService {
@@ -150,13 +150,20 @@ export class EmployerService {
 
     const createdJob = await this.prismaService.job.create({
       data: {
-        ...body,
         company_name: employer.organization.name,
         employer: {
-          connect: { id: employerId },
+          connect: {
+            id: employer.id,
+          },
         },
         Organization: {
-          connect: { id: employer.organization.id },
+          connect: {
+            id: employer.organization.id,
+          },
+        },
+        ...body,
+        jd: {
+          jd: body.jd,
         },
       },
     });
@@ -177,6 +184,9 @@ export class EmployerService {
     await this.prismaService.job.update({
       data: {
         ...body,
+        jd: {
+          jd: body.jd,
+        },
       },
       where: {
         employerId,
