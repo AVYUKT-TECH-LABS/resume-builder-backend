@@ -473,7 +473,7 @@ export class EmployerService {
     const page = await browser.newPage();
 
     // Navigate to the dedicated Next.js PDF page
-    const url = `${process.env.FRONTEND_URL}/candidate/pdf/${resumeId}`;
+    const url = `${process.env.FRONTEND_URL}/pdf/${resumeId}`;
     await page.goto(url, { waitUntil: 'networkidle0' });
 
     //   const customCSS = `

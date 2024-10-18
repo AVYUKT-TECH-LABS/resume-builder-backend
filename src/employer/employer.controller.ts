@@ -134,21 +134,21 @@ export class EmployerController {
     return this.employerService.getCandidates(req.employer.id, jobId);
   }
 
-  @Patch('/job/candidates/:id')
+  @Patch('/job/candidate/update/:jobId')
   @UseGuards(EmployerJwtAuthGuard)
   async updateCandidateApplication(
     @Req() req: Request,
-    @Param('id') id: string,
+    @Param('jobId') jobId: string,
     @Body() body: UpdateJobApplicationDto,
   ) {
     return this.employerService.updateCandidateApplication(
       req.employer.id,
-      id,
+      jobId,
       body,
     );
   }
 
-  @Patch('/download')
+  @Post('/download')
   @UseGuards(EmployerJwtAuthGuard)
   async download(
     @Req() req: Request,
