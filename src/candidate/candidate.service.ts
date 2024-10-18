@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   ApplicationStatus,
   ExperienceLevel,
@@ -170,11 +175,21 @@ export class CandidateService {
   }
 
   async apply(jobId: string, candidateId: string, resumeId: string) {
-    const scoreResult = await this.databaseService.getScore(
-      candidateId,
-      resumeId,
-      jobId,
-    );
+    const [existingApplication, scoreResult] = await Promise.all([
+      this.prismaService.application.findFirst({
+        where: {
+          userId: candidateId,
+          jobId,
+        },
+        select: {
+          id: true,
+        },
+      }),
+      this.databaseService.getScore(candidateId, resumeId, jobId),
+    ]);
+
+    if (existingApplication)
+      throw new ForbiddenException('You have already applied to this job');
 
     const score = scoreResult.length > 0 ? scoreResult[0].score : 0;
 

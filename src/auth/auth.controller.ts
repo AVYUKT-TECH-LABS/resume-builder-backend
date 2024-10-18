@@ -275,7 +275,12 @@ export class AuthController {
   @Get('logout')
   @UseGuards(CommonGuard)
   async logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie(this.configService.get<string>('JWT_COOKIE_NAME'));
+    res.clearCookie(this.configService.get<string>('JWT_COOKIE_NAME'), {
+      httpOnly: true,
+      secure: true,
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+      domain: this.configService.get('COOKIE_DOMAIN'),
+    });
 
     return {
       code: 200,
