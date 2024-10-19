@@ -9,7 +9,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
 import { CandidateModule } from './candidate/candidate.module';
-import clerkConfig from './config/clerk.config';
 import { EmployerModule } from './employer/employer.module';
 import { JobsModule } from './jobs/jobs.module';
 import { LinkedinOptimizerModule } from './linkedin-optimizer/linkedin-optimizer.module';
@@ -25,39 +24,38 @@ import { MigrationsModule } from './migrations/migrations.module';
 import { CompanyModule } from './company/company.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      load: [clerkConfig],
-    }),
-    MongooseModule.forRoot(
-      'mongodb+srv://divyansh:AOpCdQMGQeXFX1Sf@devcluster.hn4hzms.mongodb.net/resume-builder-dev?retryWrites=true&w=majority&appName=DevCluster',
-    ),
-    ResumeModule,
-    CloudModule,
-    OpenAIModule,
-    PaymentsModule,
-    JobsModule,
-    LinkedinOptimizerModule,
-    NotificationModule,
-    IpInfoModule,
-    // JobPortalModule,
-    CandidatesDatabaseModule,
-    ResumeProcessorModule,
-    PrismaModule,
-    AuthModule,
-    EmployerModule,
-    CandidateModule,
-    JwtModule,
-    ScheduleModule.forRoot(),
-    CandidateModule,
-    MigrationsModule,
-    CompanyModule,
-  ],
-  controllers: [AppController],
-  providers: [NotificationService],
+    imports: [
+        ConfigModule.forRoot({
+            isGlobal: true,
+        }),
+        MongooseModule.forRoot(
+            'mongodb+srv://divyansh:AOpCdQMGQeXFX1Sf@devcluster.hn4hzms.mongodb.net/resume-builder-dev?retryWrites=true&w=majority&appName=DevCluster',
+        ),
+        ResumeModule,
+        CloudModule,
+        OpenAIModule,
+        PaymentsModule,
+        JobsModule,
+        LinkedinOptimizerModule,
+        NotificationModule,
+        IpInfoModule,
+        // JobPortalModule,
+        CandidatesDatabaseModule,
+        ResumeProcessorModule,
+        PrismaModule,
+        AuthModule,
+        EmployerModule,
+        CandidateModule,
+        JwtModule,
+        ScheduleModule.forRoot(),
+        CandidateModule,
+        MigrationsModule,
+        CompanyModule,
+    ],
+    controllers: [AppController],
+    providers: [NotificationService],
 })
-export class AppModule {}
+export class AppModule { }
 // export class AppModule implements NestModule {
 //   configure(consumer: MiddlewareConsumer) {
 //     consumer.apply(ClerkAuthMiddleware).forRoutes('*');
