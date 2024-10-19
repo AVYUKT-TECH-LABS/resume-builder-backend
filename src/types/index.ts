@@ -55,3 +55,11 @@ export interface Resume {
   contact: Contact;
   sections: Section[];
 }
+
+export interface DashboardData {
+    organizationId: string;
+    total_applications: number;
+    total_jobs: number;
+    total_rejected: number;
+    total_shortlisted: number;
+}
