@@ -27,15 +27,32 @@ export class CandidateController {
   @Get('/jobs')
   async getJobs(
     @Query('search') search?: string,
-    @Query('salary') salary?: string,
-    @Query('jobType') jobType?: string,
-    @Query('workExperience') workExperience?: string,
+    @Query('experience') experience?: string | string[],
+    @Query('job_type') jobType?: string | string[],
+    @Query('location') location?: string | string[],
+    @Query('min_edu') minEducation?: string | string[],
+    @Query('salary') salary?: string | string[],
   ) {
+    const normalizeToArray = (
+      value: string | string[] | undefined,
+    ): string[] => {
+      if (!value) return []; // If undefined, return an empty array
+      return Array.isArray(value) ? value : [value]; // Convert string to array
+    };
+
+    const workExperience = normalizeToArray(experience);
+    const jobTypes = normalizeToArray(jobType);
+    const locations = normalizeToArray(location);
+    const educationLevels = normalizeToArray(minEducation);
+    const salaryRange = normalizeToArray(salary);
+
     const jobs = await this.candidateService.getJobs({
       search,
-      salary,
-      jobType: jobType ? jobType.split(', ') : undefined,
-      workExperience: workExperience ? workExperience.split(', ') : undefined,
+      salary: salaryRange,
+      jobType: jobTypes,
+      workExperience,
+      location: locations,
+      minEducation: educationLevels,
     });
 
     // const aggregatedJobs = await this.aggJobs.get();

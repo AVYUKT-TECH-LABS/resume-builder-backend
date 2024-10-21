@@ -6,9 +6,11 @@ import {
 } from '@nestjs/common';
 import {
   ApplicationStatus,
+  EducationLevel,
   ExperienceLevel,
   JobType,
   Prisma,
+  WorkLocationType,
 } from '@prisma/client';
 import { CandidatesDatabaseService } from '../candidates-database/candidates-database.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -20,7 +22,7 @@ export class CandidateService {
   constructor(
     private prismaService: PrismaService,
     private databaseService: CandidatesDatabaseService,
-  ) {}
+  ) { }
 
   async create(data: Prisma.UserCreateInput) {
     return this.prismaService.user.create({
@@ -41,11 +43,14 @@ export class CandidateService {
 
   async getJobs(filters: {
     search?: string;
-    salary?: string;
+    salary?: string[];
     jobType?: string[];
     workExperience?: string[];
+    location?: string[];
+    minEducation?: string[];
   }) {
-    const { search, salary, jobType, workExperience } = filters;
+    const { search, jobType, salary, workExperience, location, minEducation } =
+      filters;
 
     const where: Prisma.JobWhereInput = {};
 
@@ -55,13 +60,31 @@ export class CandidateService {
       };
     }
 
-    if (salary) {
-      const salaryInt = parseInt(salary, 10); // Convert salary query to an integer
-      if (!isNaN(salaryInt)) {
-        // Filter based on string comparison. This won't work perfectly due to string nature but works for some cases.
-        where.fixed_salary = {
-          gte: salary.toString(),
+    if (workExperience && workExperience.length > 0) {
+      const validExperienceLevels: ExperienceLevel[] = workExperience
+        .map((level) => level.trim())
+        .filter((level) =>
+          Object.values(ExperienceLevel).includes(level as ExperienceLevel),
+        ) as ExperienceLevel[];
+
+      if (validExperienceLevels.length > 0) {
+        where.experience_level = {
+          in: validExperienceLevels,
         };
+      }
+    }
+
+    if (salary && salary.length > 0) {
+      const validSalaries = salary
+        .map((sal) => parseFloat(sal))
+        .filter((sal) => !isNaN(sal));
+
+      if (validSalaries.length > 0) {
+        where.OR = validSalaries.map((salary) => ({
+          fixed_salary: {
+            gte: salary,
+          },
+        }));
       }
     }
 
@@ -79,16 +102,30 @@ export class CandidateService {
       }
     }
 
-    if (workExperience && workExperience.length > 0) {
-      const validExperienceLevels: ExperienceLevel[] = workExperience
-        .map((level) => level.trim())
-        .filter((level) =>
-          Object.values(ExperienceLevel).includes(level as ExperienceLevel),
-        ) as ExperienceLevel[];
+    if (location && location.length > 0) {
+      const validLocations: WorkLocationType[] = location
+        .map((type) => type.trim())
+        .filter((type) =>
+          Object.values(WorkLocationType).includes(type as WorkLocationType),
+        ) as WorkLocationType[];
 
-      if (validExperienceLevels.length > 0) {
-        where.experience_level = {
-          in: validExperienceLevels,
+      if (validLocations.length > 0) {
+        where.work_location_type = {
+          in: validLocations,
+        };
+      }
+    }
+
+    if (minEducation && minEducation.length > 0) {
+      const validMinEdu: EducationLevel[] = minEducation
+        .map((type) => type.trim())
+        .filter((type) =>
+          Object.values(EducationLevel).includes(type as EducationLevel),
+        ) as EducationLevel[];
+
+      if (validMinEdu.length > 0) {
+        where.minimum_edu = {
+          in: validMinEdu,
         };
       }
     }
