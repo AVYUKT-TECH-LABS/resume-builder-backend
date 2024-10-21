@@ -8,9 +8,9 @@ import {
   ApplicationStatus,
   EducationLevel,
   ExperienceLevel,
+  Job_work_location_type,
   JobType,
   Prisma,
-  WorkLocationType,
 } from '@prisma/client';
 import { CandidatesDatabaseService } from '../candidates-database/candidates-database.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -22,7 +22,7 @@ export class CandidateService {
   constructor(
     private prismaService: PrismaService,
     private databaseService: CandidatesDatabaseService,
-  ) { }
+  ) {}
 
   async create(data: Prisma.UserCreateInput) {
     return this.prismaService.user.create({
@@ -103,11 +103,13 @@ export class CandidateService {
     }
 
     if (location && location.length > 0) {
-      const validLocations: WorkLocationType[] = location
+      const validLocations: Job_work_location_type[] = location
         .map((type) => type.trim())
         .filter((type) =>
-          Object.values(WorkLocationType).includes(type as WorkLocationType),
-        ) as WorkLocationType[];
+          Object.values(Job_work_location_type).includes(
+            type as Job_work_location_type,
+          ),
+        ) as Job_work_location_type[];
 
       if (validLocations.length > 0) {
         where.work_location_type = {
