@@ -6,6 +6,7 @@ import {
     ForbiddenException,
     Get,
     InternalServerErrorException,
+    Logger,
     MaxFileSizeValidator,
     Param,
     ParseFilePipe,
@@ -33,6 +34,7 @@ import { DashboardData } from 'src/types';
 @ApiTags('Employer')
 @Controller('employer')
 export class EmployerController {
+    private logger: Logger = new Logger(EmployerController.name)
     constructor(private readonly employerService: EmployerService) { }
 
     @Get('/verify')
@@ -162,6 +164,7 @@ export class EmployerController {
             response.setHeader('Content-Disposition', 'attachment');
             response.end(pdf);
         } catch (err) {
+            this.logger.log(err)
             if (err instanceof BadRequestException) throw err;
             if (err instanceof ForbiddenException) throw err;
             throw new InternalServerErrorException('Failed to download resume');

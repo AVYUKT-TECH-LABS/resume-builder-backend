@@ -14,7 +14,7 @@ import { OnBoardingDto } from './dto/onBoardDto.dto';
 import { UpdateJobApplicationDto } from './dto/update-job-application.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { ApplicationStatus } from '@prisma/client';
-import { DashboardData } from 'src/types';
+import { ApplicationStatusCounts, DashboardData } from 'src/types';
 
 @Injectable()
 export class EmployerService {
@@ -521,13 +521,15 @@ export class EmployerService {
                 total_jobs,
                 total_applications,
                 total_shortlisted,
-                total_rejected
+                total_rejected,
+                application_status_counts
             ] = await Promise.all([
                 this.getOrganization(employerId),
                 this.getTotalJobs(employerId),
                 this.getTotalApplications(employerId),
                 this.getTotalApplicationsByStatus(employerId, "shortlisted"),
-                this.getTotalApplicationsByStatus(employerId, "rejected")
+                this.getTotalApplicationsByStatus(employerId, "rejected"),
+                this.getApplicationStatusCounts(employerId)
             ]);
 
             return {
@@ -535,7 +537,8 @@ export class EmployerService {
                 total_applications,
                 total_jobs,
                 total_rejected,
-                total_shortlisted
+                total_shortlisted,
+                application_status_counts
             };
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
@@ -568,6 +571,18 @@ export class EmployerService {
                 job: { employerId }
             }
         });
+    }
+
+    private async getApplicationStatusCounts(employerId: string): Promise<ApplicationStatusCounts> {
+        const statuses = Object.values(ApplicationStatus);
+        const counts = await Promise.all(
+            statuses.map(status => this.getTotalApplicationsByStatus(employerId, status))
+        );
+
+        return statuses.reduce((acc, status, index) => {
+            acc[status] = counts[index];
+            return acc;
+        }, {} as ApplicationStatusCounts);
     }
 
     private async getTotalApplicationsByStatus(employerId: string, status: ApplicationStatus): Promise<number> {
