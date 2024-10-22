@@ -113,7 +113,7 @@ model Employer {
   locked           Boolean       @default(false)
   Batch            Batch[]
   organization     Organization? @relation(fields: [organization_id], references: [id])
-  jobs             Job?
+  jobs             Job[]
 
   @@index([organization_id])
   @@index([email])
@@ -162,7 +162,7 @@ model org_social_links {
 
 model Job {
   id                    String                 @id @default(cuid())
-  employerId            String                 @unique
+  employerId            String
   age                   String?
   avg_incentive         String?
   company_name          String
