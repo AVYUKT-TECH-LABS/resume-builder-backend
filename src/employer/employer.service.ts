@@ -17,6 +17,7 @@ import { OnBoardingDto } from './dto/onBoardDto.dto';
 import { UpdateJobApplicationDto } from './dto/update-job-application.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { ConfigService } from '@nestjs/config';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class EmployerService {
@@ -28,16 +29,27 @@ export class EmployerService {
         private prismaService: PrismaService,
         private openai: OpenAiService,
         private cloud: CloudService,
-        private readonly config: ConfigService
+        private readonly config: ConfigService,
+        private notifications: NotificationService
     ) { }
 
     async createEmployeeWithoutCompany(data: EmployerEmailSignupDto) {
-        return this.prismaService.employer.create({
+        const newEmployer = await this.prismaService.employer.create({
             data: {
                 ...data,
                 provider: 'EMAIL_PASSWORD',
             },
         });
+
+        this.notifications.sendTemplateMail('templates-email-queue', {
+            templateName: 'employer_welcome',
+            payload: {
+                email: data.email,
+                user_name: data.name,
+            },
+        });
+
+        return newEmployer;
     }
 
     async findEmployeeByEmail(email: string) {
@@ -278,7 +290,16 @@ export class EmployerService {
         jobId: string,
         body: UpdateJobApplicationDto,
     ) {
-        await this.prismaService.application.update({
+        const applicationExists = await this.prismaService.application.count({
+            where: {
+                id: body.application_id,
+            },
+        });
+
+        if (applicationExists != 1)
+            throw new NotFoundException('Application not found');
+
+        const application = await this.prismaService.application.update({
             where: {
                 id: body.application_id,
                 job: {
@@ -289,6 +310,35 @@ export class EmployerService {
             data: {
                 application_status: body.application_status,
             },
+            select: {
+                user: {
+                    select: {
+                        name: true,
+                        email: true,
+                    },
+                },
+                job: {
+                    select: {
+                        job_title: true,
+                        Organization: {
+                            select: {
+                                name: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        this.notifications.sendTemplateMail('templates-email-queue', {
+            templateName: 'application_status_update',
+            payload: {
+                email: application.user.email,
+                application_id: body.application_id,
+                job_title: application.job.job_title,
+                company_name: application.job.Organization.name,
+                user_name: application.user.name,
+            },
         });
     }
 
@@ -297,6 +347,23 @@ export class EmployerService {
             const batch = await this.prismaService.batch.create({
                 data: {
                     employerId,
+                },
+                select: {
+                    id: true,
+                    employer: {
+                        select: {
+                            name: true,
+                            email: true,
+                        },
+                    },
+                },
+            });
+
+            this.notifications.sendTemplateMail('templates-email-queue', {
+                templateName: 'batch_create_success',
+                payload: {
+                    email: batch.employer.email,
+                    user_name: batch.employer.name,
                 },
             });
 
