@@ -29,7 +29,7 @@ import { CreateJobDto } from './dto/create-job.dto';
 import { OnBoardingDto } from './dto/onBoardDto.dto';
 import { UpdateJobApplicationDto } from './dto/update-job-application.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
-import { DashboardData } from 'src/types';
+import { DashboardData } from '../types';
 
 @ApiTags('Employer')
 @Controller('employer')

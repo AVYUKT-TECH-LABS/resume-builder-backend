@@ -68,3 +68,9 @@ export interface DashboardData {
 export interface ApplicationStatusCounts {
     [key: string]: number;
 }
+
+export interface VectorSearchResult {
+    _id: string;
+    jobId: string;
+    score: number;
+}
