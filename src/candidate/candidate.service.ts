@@ -15,6 +15,7 @@ import {
 import { CandidatesDatabaseService } from '../candidates-database/candidates-database.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateJobPreferenceDto, UpdateJobPreferenceDto } from './dro/pref.dto';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class CandidateService {
@@ -22,15 +23,26 @@ export class CandidateService {
   constructor(
     private prismaService: PrismaService,
     private databaseService: CandidatesDatabaseService,
+    private notifications: NotificationService,
   ) {}
 
   async create(data: Prisma.UserCreateInput) {
-    return this.prismaService.user.create({
+    const newUser = await this.prismaService.user.create({
       data: {
         ...data,
         provider: 'EMAIL_PASSWORD',
       },
     });
+
+    this.notifications.sendTemplateMail('templates-email-queue', {
+      templateName: 'user_welcome',
+      payload: {
+        email: newUser.email,
+        user_name: newUser.name,
+      },
+    });
+
+    return newUser;
   }
 
   async findUserByEmail(email: string) {
@@ -232,7 +244,7 @@ export class CandidateService {
 
     const score = scoreResult.length > 0 ? scoreResult[0].score : 0;
 
-    return this.prismaService.application.create({
+    const newApplication = await this.prismaService.application.create({
       data: {
         resume_id: resumeId,
         application_status: 'application_recieved',
@@ -249,7 +261,39 @@ export class CandidateService {
           },
         },
       },
+      select: {
+        id: true,
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+        job: {
+          select: {
+            job_title: true,
+            Organization: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
     });
+
+    this.notifications.sendTemplateMail('templates-email-queue', {
+      templateName: 'application_success',
+      payload: {
+        email: newApplication.user.email,
+        application_id: newApplication.id,
+        job_title: newApplication.job.job_title,
+        company_name: newApplication.job.Organization.name,
+        user_name: newApplication.user.name,
+      },
+    });
+
+    return newApplication;
   }
 
   async createPreferences(pref: CreateJobPreferenceDto, userId: string) {

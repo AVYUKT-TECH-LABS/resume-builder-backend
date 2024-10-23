@@ -15,4 +15,18 @@ export class NotificationService {
 
     return result;
   }
+
+  async sendTemplateMail(
+    queueName: string,
+    data: {
+      templateName: string;
+      payload: Record<string, unknown>;
+    },
+  ) {
+    const sqs = this.cloud.getSqsService();
+
+    const result = await sqs.sendMessage(queueName, data);
+
+    return result;
+  }
 }

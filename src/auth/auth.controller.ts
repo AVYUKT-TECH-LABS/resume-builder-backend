@@ -95,7 +95,7 @@ export class AuthController {
           email: user.email,
           userType: UserType.CANDIDATE,
         },
-        'GOOGLE',
+        'LINKEDIN',
       );
 
       res.cookie(
@@ -111,7 +111,7 @@ export class AuthController {
       return res.redirect(`${this.configService.get('FRONTEND_URL')}/auth`);
     } catch (err) {
       console.log(err);
-      throw new Error('Failed to login with google');
+      throw new Error('Failed to login with Linkedin');
     }
   }
 

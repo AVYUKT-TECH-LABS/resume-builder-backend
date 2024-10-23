@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { OpenAiService } from '../openai/openai.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Upload } from '../schemas/upload.schema';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class LinkedinOptimizerService {
