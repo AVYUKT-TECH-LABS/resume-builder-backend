@@ -1,12 +1,16 @@
+import { VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
-import { VersioningType } from '@nestjs/common';
 import _puppeteer from './puppeteer';
+import session from 'express-session';
+import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(bodyParser.json({ limit: '50mb' }));
+  app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
   // Define the regex patterns based on the environment
   const allowedOriginRegexDev = /^https:\/\/(?:[\w-]+\.)*talentxcel\.net$/;
@@ -14,6 +18,14 @@ async function bootstrap() {
 
   // Check the environment
   const isDevelopment = process.env.NODE_ENV === 'development';
+
+  app.use(
+    session({
+      secret: 'session-secret',
+      resave: false,
+      saveUninitialized: false,
+    }),
+  );
 
   app.enableCors({
     origin: (origin, callback) => {

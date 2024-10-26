@@ -9,33 +9,37 @@ import {
   Post,
   UseGuards,
   Headers,
+  Req,
 } from '@nestjs/common';
 
-import { GetUser } from '../decorators/user.decorator';
-import { ClerkAuthGuard } from '../guards/clerk.guard';
-import { User } from '../interfaces/user.interface';
 import { PaymentsService } from './payments.service';
 import { RealIp } from 'nestjs-real-ip';
+import { CandidateJwtAuthGuard } from '../guards/candidate.auth.guard';
+import { Request } from 'express';
 
 @Controller('payments')
 export class PaymentsController {
   private logger: Logger = new Logger(PaymentsController.name);
   constructor(private paymentService: PaymentsService) {}
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Post('/order/create')
   async createOrder(
-    @GetUser() user: User,
+    @Req() req: Request,
     @Body('plan') plan_id: string,
     @RealIp() ip: string,
   ) {
     try {
       if (!ip) {
-        this.logger.log(`Failed to determine ip for user ${user.id}`);
+        this.logger.log(`Failed to determine ip for user ${req.candidate.id}`);
         throw new BadRequestException('Failed to create order');
       }
 
-      const order = await this.paymentService.createOrder(plan_id, user.id, ip);
+      const order = await this.paymentService.createOrder(
+        plan_id,
+        req.candidate.id,
+        ip,
+      );
       return {
         code: 200,
         message: 'Order created',
@@ -66,11 +70,14 @@ export class PaymentsController {
     return this.paymentService.processWebhook(payload);
   }
 
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(CandidateJwtAuthGuard)
   @Get('status/:orderId')
-  getStatus(@Param('orderId') orderId: string) {
+  getStatus(@Param('orderId') orderId: string, @Req() req: Request) {
     try {
-      const status = this.paymentService.getOrderStatus(orderId);
+      const status = this.paymentService.getOrderStatus(
+        orderId,
+        req.candidate.id,
+      );
       return status;
     } catch (err) {
       this.logger.error(err);

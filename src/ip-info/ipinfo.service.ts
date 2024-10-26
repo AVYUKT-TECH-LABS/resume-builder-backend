@@ -148,7 +148,6 @@ export class IpInfoService {
   async getInfo(ipAddr: string) {
     try {
       const info = await this.wrapper.lookupIp(ipAddr);
-      console.log(info);
       return info;
     } catch (err) {
       this.logger.log(err);

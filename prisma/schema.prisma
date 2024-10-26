@@ -1,0 +1,359 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id              String           @id @default(uuid())
+    email           String           @unique
+    name            String
+    created_at      DateTime         @default(now())
+    provider        AuthProvider     @default(EMAIL_PASSWORD)
+    provider_id     String?          @unique
+    updated_at      DateTime         @updatedAt
+    clerkId         String?          @unique
+    credits         Int              @default(0)
+    banned          Boolean          @default(false)
+    hasImage        Boolean          @default(false)
+    imageUrl        String?
+    lastActiveAt    DateTime?
+    lastSignInAt    DateTime?
+    locked          Boolean          @default(false)
+    jobPreferenceId String?
+    applications    Application[]
+    candidateSkills CandidateSkill[]
+    Order           Order[]
+    jobPreferences  JobPreference?   @relation(fields: [jobPreferenceId], references: [id])
+
+    @@index([email])
+    @@index([id])
+    @@index([jobPreferenceId], map: "User_jobPreferenceId_fkey")
+}
+
+model JobPreference {
+    id         String   @id @default(uuid())
+    userId     String
+    jobType    JobType
+    minSalary  Float
+    maxSalary  Float
+    location   String
+    remoteWork Boolean  @default(false)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+    user       User[]
+}
+
+model Skill {
+    id              String           @id @default(uuid())
+    name            String           @unique
+    candidateSkills CandidateSkill[]
+}
+
+model CandidateSkill {
+    id          String      @id @default(uuid())
+    userId      String
+    skillId     String
+    proficiency Proficiency
+    skill       Skill       @relation(fields: [skillId], references: [id])
+    user        User        @relation(fields: [userId], references: [id])
+
+    @@unique([userId, skillId])
+    @@index([skillId], map: "CandidateSkill_skillId_fkey")
+}
+
+model Organization {
+    id               String             @id @default(uuid())
+    name             String
+    created_at       DateTime           @default(now())
+    updated_at       DateTime           @updatedAt
+    city             String
+    deleted_at       DateTime?
+    description      String
+    industry         String
+    isSubscribed     Boolean            @default(false)
+    is_deleted       Boolean            @default(false)
+    is_verified      Boolean            @default(false)
+    lastListingDate  DateTime?
+    listingsLeft     Int                @default(2)
+    logo_url         String
+    mailDomain       String?            @unique
+    num_employees    String
+    website          String
+    employers        Employer[]
+    jobs             Job[]
+    org_reviews      org_reviews[]
+    org_social_links org_social_links[]
+
+    @@index([name])
+}
+
+model Employer {
+    id               String        @id @default(uuid())
+    name             String
+    email            String        @unique
+    created_at       DateTime      @default(now())
+    organization_id  String?
+    provider         AuthProvider  @default(EMAIL_PASSWORD)
+    provider_id      String?       @unique
+    updated_at       DateTime      @updatedAt
+    deleted_at       DateTime?
+    deletion_message String?       @default("")
+    is_deleted       Boolean       @default(false)
+    is_verified      Boolean       @default(false)
+    clerkId          String?       @unique
+    banned           Boolean       @default(false)
+    hasImage         Boolean       @default(false)
+    imageUrl         String?
+    lastActiveAt     DateTime?
+    lastSignInAt     DateTime?
+    locked           Boolean       @default(false)
+    Batch            Batch[]
+    organization     Organization? @relation(fields: [organization_id], references: [id])
+    jobs             Job[]
+
+    @@index([organization_id])
+    @@index([email])
+}
+
+model Batch {
+    id         String      @id @default(uuid())
+    employerId String
+    uploads    Json?
+    jd         Json?
+    createdAt  DateTime    @default(now())
+    updatedAt  DateTime    @updatedAt
+    status     BatchStatus @default(created)
+    employer   Employer    @relation(fields: [employerId], references: [id])
+
+    @@index([employerId], map: "Batch_employerId_fkey")
+}
+
+model org_reviews {
+    id              String       @id @default(uuid())
+    review          String
+    rating          Int
+    is_deleted      Boolean      @default(false)
+    created_at      DateTime     @default(now())
+    updated_at      DateTime     @updatedAt
+    deleted_at      DateTime?
+    organization_id String
+    organization    Organization @relation(fields: [organization_id], references: [id])
+
+    @@index([organization_id], map: "org_reviews_organization_id_fkey")
+}
+
+model org_social_links {
+    id              String       @id @default(uuid())
+    facebook        String?
+    twitter         String?
+    instagram       String?
+    linkedin        String?
+    youtube         String?
+    created_at      DateTime     @default(now())
+    updated_at      DateTime     @updatedAt
+    organization_id String
+    organization    Organization @relation(fields: [organization_id], references: [id])
+
+    @@index([organization_id], map: "org_social_links_organization_id_fkey")
+}
+
+model Job {
+    id                    String                 @id @default(cuid())
+    employerId            String
+    age                   String?
+    avg_incentive         String?
+    company_name          String
+    english_level         EnglishLevel
+    experience_level      ExperienceLevel
+    fixed_salary          Int
+    gender                Gender?
+    interview_address     String?
+    interview_type        InterviewType
+    is24_7                Boolean
+    jd                    Json
+    job_title             String
+    job_type              JobType
+    joining_fee           String?
+    joining_fee_required  Boolean
+    minimum_edu           EducationLevel
+    office_address        String?
+    online_interview_link String?
+    other_instructions    String?
+    pay_type              PayType
+    perks                 String?
+    regional_languages    String?
+    required_assets       String?
+    skills                String?
+    status                JobStatus
+    total_experience      String?
+    walk_in_end_date      String?
+    walk_in_start_date    String?
+    walk_in_timings       String?
+    work_location_type    Job_work_location_type
+    created_at            DateTime               @default(now())
+    updated_at            DateTime               @updatedAt
+    organizationId        String
+    deleted_at            DateTime?
+    is_deleted            Boolean                @default(false)
+    applications          Application[]
+    employer              Employer               @relation(fields: [employerId], references: [id])
+    Organization          Organization           @relation(fields: [organizationId], references: [id])
+
+    @@index([employerId])
+    @@index([organizationId], map: "Job_organizationId_fkey")
+}
+
+model AggregatedJob {
+    id       String @id
+    title    String
+    company  String
+    location String
+    link     String
+    platform String
+}
+
+model Application {
+    id                 String            @id @default(uuid())
+    userId             String
+    jobId              String
+    application_status ApplicationStatus
+    cover_letter       String?
+    last_updated       DateTime
+    resume_id          String
+    created_at         DateTime          @default(now())
+    updated_at         DateTime          @updatedAt
+    score              Int               @default(0)
+    job                Job               @relation(fields: [jobId], references: [id])
+    user               User              @relation(fields: [userId], references: [id])
+
+    @@index([userId])
+    @@index([jobId])
+}
+
+model Order {
+    id         String   @id @default(cuid())
+    userId     String
+    planId     String
+    pg_orderId String   @unique
+    pg         String
+    amount     String
+    currency   String
+    status     String
+    created_at DateTime @default(now())
+    updated_at DateTime @updatedAt
+    user       User     @relation(fields: [userId], references: [id])
+
+    @@index([userId])
+    @@index([planId])
+}
+
+model Plan {
+    id             String   @id @default(cuid())
+    name           String   @unique
+    amount         Int
+    display_amount Int
+    credits        Int
+    description    String?
+    isActive       Boolean  @default(true)
+    created_at     DateTime @default(now())
+    updated_at     DateTime @updatedAt
+}
+
+enum Proficiency {
+    BEGINNER
+    INTERMEDIATE
+    ADVANCED
+    EXPERT
+}
+
+enum BatchStatus {
+    created
+    uploaded
+    processing
+    processed
+    cancelled
+}
+
+enum AuthProvider {
+    EMAIL_PASSWORD
+    GOOGLE
+    LINKEDIN
+}
+
+enum ApplicationStatus {
+    application_recieved
+    under_review
+    shortlisted
+    assessment_scheduled
+    interview_scheduled
+    interview_in_progress
+    interview_completed
+    offer_made
+    offer_accepted
+    offer_rejected
+    hired
+    rejected
+    on_hold
+}
+
+enum JobStatus {
+    active
+    paused
+    closed
+}
+
+enum JobType {
+    full_time
+    part_time
+    both
+    contract
+    internship
+}
+
+enum PayType {
+    fixed_only
+    fixed_and_incentive
+    incentive_only
+}
+
+enum EducationLevel {
+    ten_or_below_10
+    twelve_pass
+    diploma
+    graduate
+}
+
+enum EnglishLevel {
+    NA
+    basic
+    intermediate
+    proficient
+}
+
+enum ExperienceLevel {
+    freshers
+    intermediate
+    experts
+}
+
+enum Gender {
+    male
+    female
+    both
+}
+
+enum InterviewType {
+    in_person
+    walk_in
+    telephonic_online
+}
+
+enum Job_work_location_type {
+    hybrid
+    remote
+    office
+}

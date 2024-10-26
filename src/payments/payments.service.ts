@@ -1,13 +1,9 @@
-import { clerkClient } from '@clerk/clerk-sdk-node';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectModel } from '@nestjs/mongoose';
-import Razorpay from 'razorpay';
-import { Plan } from '../schemas/plan.schema';
-import { Model } from 'mongoose';
-import { Order } from '../schemas/order.schema';
 import * as crypto from 'crypto';
+import Razorpay from 'razorpay';
 import { IpInfoService } from '../ip-info/ipinfo.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PaymentsService {
@@ -15,8 +11,7 @@ export class PaymentsService {
   constructor(
     private configService: ConfigService,
     private ipInfo: IpInfoService,
-    @InjectModel(Plan.name) private planModel: Model<Plan>,
-    @InjectModel(Order.name) private orderModel: Model<Order>,
+    private prisma: PrismaService,
   ) {
     this.razorpay = new Razorpay({
       key_id: this.configService.get<string>('RZP_KEY_ID'),
@@ -25,8 +20,10 @@ export class PaymentsService {
   }
 
   async getPlans(ipAddr: string) {
-    const plans = await this.planModel.find({
-      isActive: true,
+    const plans = await this.prisma.plan.findMany({
+      where: {
+        isActive: true,
+      },
     });
 
     const regionalPlans = await Promise.all(
@@ -37,7 +34,7 @@ export class PaymentsService {
           ipAddr,
         );
         return {
-          ...plan.toObject(), // Convert Mongoose document to a plain JavaScript object
+          ...plan,
           amount: details.adjustedPrice,
           display_amount: `${details.currency.symbol}${details.adjustedPrice / Math.pow(10, details.exponent)}`,
         };
@@ -50,7 +47,11 @@ export class PaymentsService {
   async createOrder(planName: string, userId: string, ip: string) {
     const [plan, user] = await Promise.all([
       this.getPlan(planName),
-      clerkClient.users.getUser(userId),
+      this.prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+      }),
     ]);
 
     if (!user)
@@ -79,9 +80,9 @@ export class PaymentsService {
         env: this.configService.get<string>('NODE_ENV'),
       },
       customer_details: {
-        name: user.fullName,
-        email: user.emailAddresses[0]?.emailAddress,
-        contact: user.phoneNumbers[0]?.phoneNumber,
+        name: user.name,
+        email: user.email,
+        contact: null,
         shipping_address: null,
         billing_address: null,
       },
@@ -115,32 +116,41 @@ export class PaymentsService {
     currency,
     status,
   }) {
-    return this.orderModel.create({
-      userId,
-      planId,
-      pg_orderId: orderId,
-      pg,
-      amount,
-      currency,
-      status,
+    return this.prisma.order.create({
+      data: {
+        planId,
+        pg_orderId: orderId,
+        pg,
+        amount: String(amount),
+        currency,
+        status,
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+      },
     });
   }
 
   async getPlan(planName: string) {
-    return this.planModel.findOne({
-      name: planName,
+    return this.prisma.plan.findFirst({
+      where: {
+        name: planName,
+      },
     });
   }
 
-  async getOrderStatus(orderId: string) {
-    return this.orderModel.findOne(
-      {
+  async getOrderStatus(orderId: string, userId: string) {
+    return this.prisma.order.findUnique({
+      where: {
         pg_orderId: orderId,
+        userId,
       },
-      {
-        status: 1,
+      select: {
+        status: true,
       },
-    );
+    });
   }
 
   validateSignature(payload, signature) {
@@ -171,57 +181,61 @@ export class PaymentsService {
       return 'ENV_MISMATCH';
     }
 
-    const session = await this.orderModel.startSession();
-    session.startTransaction();
-
     try {
-      const existingOrder = await this.orderModel
-        .findOne({ pg_orderId: order.id })
-        .session(session);
+      const result = await this.prisma.$transaction(async (prisma) => {
+        const existingOrder = await prisma.order.findUnique({
+          where: { pg_orderId: order.id },
+        });
 
-      if (!existingOrder) {
-        return 'ORDER_NOT_FOUND';
-      }
+        if (!existingOrder) {
+          return 'ORDER_NOT_FOUND';
+        }
 
-      existingOrder.status = order.status;
-      existingOrder.amount = (order.amount / 100).toString();
-      existingOrder.currency = order.currency;
-      existingOrder.status = 'PAID';
+        const updatedOrder = await prisma.order.update({
+          where: { id: existingOrder.id },
+          data: {
+            status: 'PAID',
+            amount: (order.amount / 100).toString(),
+            currency: order.currency,
+          },
+        });
 
-      const { planId, userId } = existingOrder;
-
-      const plan = await this.planModel
-        .findOne(
-          {
-            _id: planId,
+        const plan = await prisma.plan.findFirst({
+          where: {
+            id: updatedOrder.planId,
             isActive: true,
             amount: order.amount,
           },
-          { credits: 1 },
-        )
-        .session(session);
+          select: { credits: true },
+        });
 
-      if (!plan) {
-        return 'PLAN_NOT_FOUND';
-      }
-      const user = await clerkClient.users.getUser(userId);
-      const updatedCredits =
-        Number(user.publicMetadata.credits || 0) + plan.credits;
+        if (!plan) {
+          return 'PLAN_NOT_FOUND';
+        }
 
-      await clerkClient.users.updateUserMetadata(userId, {
-        publicMetadata: { credits: updatedCredits },
+        const user = await this.prisma.user.findUnique({
+          where: {
+            id: updatedOrder.userId,
+          },
+        });
+        const updatedCredits = Number(user.credits || 0) + plan.credits;
+
+        await this.prisma.user.update({
+          where: {
+            id: updatedOrder.userId,
+          },
+          data: {
+            credits: updatedCredits,
+          },
+        });
+
+        return 'SUCCESS';
       });
 
-      await existingOrder.save({ session });
-      await session.commitTransaction();
-
-      return 'SUCCESS';
+      return result;
     } catch (error) {
-      await session.abortTransaction();
       console.error('Webhook processing error:', error);
-      return 'SUCCESS';
-    } finally {
-      session.endSession();
+      return 'ERROR';
     }
   }
 }

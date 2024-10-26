@@ -1,8 +1,8 @@
 // src/cloud/cloud.service.ts
 import { Inject, Injectable } from '@nestjs/common';
-import { ICloudProvider } from './interfaces/cloud-provider.interface';
-import { GcpService } from './gcp/gcp.service';
 import { AwsService } from './aws/aws.service';
+import { GcpService } from './gcp/gcp.service';
+import { ICloudProvider } from './interfaces/cloud-provider.interface';
 
 @Injectable()
 export class CloudService implements ICloudProvider {
@@ -19,5 +19,9 @@ export class CloudService implements ICloudProvider {
 
   getStorageService() {
     return this.cloudProvider.getStorageService();
+  }
+
+  getSqsService() {
+    return this.awsService.getSqsService();
   }
 }
