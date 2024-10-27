@@ -1,7 +1,9 @@
+import { Model, Types } from 'mongoose';
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 // import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+
 import { CloudService } from '../cloud/cloud.service';
 import { OpenAiService } from '../openai/openai.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -33,7 +35,7 @@ const defaults = {
       background: '#ffffff',
       text: '#000000',
     },
-    template: 'clarity',
+    template: 'minimalist',
   },
   picture: {
     available: false,
