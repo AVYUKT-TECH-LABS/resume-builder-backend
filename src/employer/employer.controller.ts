@@ -114,6 +114,20 @@ export class EmployerController {
     return this.employerService.deleteJob(req.employer.organization_id, id);
   }
 
+  @Post('/job/invite/:id')
+  @UseGuards(EmployerJwtAuthGuard)
+  async inviteCandidates(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() body: { candidates: string[] },
+  ) {
+    return this.employerService.inviteCandidates(
+      req.employer.organization_id,
+      id,
+      body.candidates,
+    );
+  }
+
   @Post('/job')
   @UseGuards(EmployerJwtAuthGuard)
   async addJob(@Req() req: Request, @Body() body: CreateJobDto) {

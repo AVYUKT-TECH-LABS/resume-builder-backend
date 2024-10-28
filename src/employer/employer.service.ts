@@ -292,6 +292,61 @@ export class EmployerService {
     };
   }
 
+  async inviteCandidates(
+    organizationId: string,
+    jobId: string,
+    candidateIds: string[],
+  ) {
+    const [job, candidates] = await Promise.all([
+      this.getJob(organizationId, jobId),
+      this.getCandidateDetails(candidateIds),
+    ]);
+    if (!job) throw new NotFoundException('Job not found');
+    await Promise.all(
+      candidates.map((candidate) => {
+        return this.notifications.sendTemplateMail('templates-email-queue', {
+          templateName: 'job-invite',
+          payload: {
+            email: candidate.email,
+            user_name: candidate.name,
+            job_title: job.job_title,
+          },
+        });
+      }),
+    );
+
+    // Return the results
+    return 'ok';
+  }
+
+  async getCandidateDetails(candidateIds: string[]) {
+    const candidates = await this.prismaService.user.findMany({
+      where: {
+        id: {
+          in: candidateIds,
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    });
+
+    // Create a map for easy lookup
+    const candidateMap = new Map(candidates.map((c) => [c.id, c]));
+
+    // Check if all candidates were found
+    const missingCandidates = candidateIds.filter(
+      (id) => !candidateMap.has(id),
+    );
+    if (missingCandidates.length > 0) {
+      throw new Error(`Candidates not found: ${missingCandidates.join(', ')}`);
+    }
+
+    return candidates;
+  }
+
   async getCandidates(organizationId: string, jobId: string) {
     const job = await this.prismaService.job.findFirst({
       where: {

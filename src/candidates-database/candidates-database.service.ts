@@ -1,11 +1,13 @@
+import { Model, Types } from 'mongoose';
+import { z } from 'zod';
+
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ResumeV2 } from '../schemas/resume.schema.v2';
-import { Model, Types } from 'mongoose';
+
 import { OpenAiService } from '../openai/openai.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JobEmbeddings } from '../schemas/job-embeddings.schema';
-import { z } from 'zod';
+import { ResumeV2 } from '../schemas/resume.schema.v2';
 
 @Injectable()
 export class CandidatesDatabaseService {
@@ -41,7 +43,7 @@ export class CandidatesDatabaseService {
       );
 
       return {
-        results: recommendedCandidates,
+        results: recommendedCandidates.filter((cand) => cand.user !== null),
         pagination: vectorResponse.pagination,
       };
     } catch (err) {
@@ -102,7 +104,9 @@ export class CandidatesDatabaseService {
   private async getUserDetails(
     data: { _id: string; userId: string; score: number }[],
   ) {
-    const userIds = data.map((item) => item.userId);
+    const userIds = data
+      .map((item) => item.userId)
+      .filter((id) => id !== 'GUEST_USER');
     const resumeIds = data.map((item) => item._id);
 
     try {
