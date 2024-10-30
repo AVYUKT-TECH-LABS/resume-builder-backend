@@ -24,6 +24,7 @@ export class CandidatesDatabaseService {
     jobId: string,
     page: number = 1,
     pageSize: number = 10,
+    filters?: Record<string, unknown>,
   ) {
     try {
       //get saved embeddings for the job
@@ -40,6 +41,7 @@ export class CandidatesDatabaseService {
 
       const recommendedCandidates = await this.getUserDetails(
         vectorResponse.results,
+        filters,
       );
 
       return {
@@ -103,6 +105,7 @@ export class CandidatesDatabaseService {
 
   private async getUserDetails(
     data: { _id: string; userId: string; score: number }[],
+    filters?: Record<string, unknown>,
   ) {
     const userIds = data
       .map((item) => item.userId)
@@ -117,6 +120,26 @@ export class CandidatesDatabaseService {
           },
           banned: false,
           locked: false,
+          ...(filters &&
+            Object.keys(filters).length > 0 && {
+              jobPreferences: {
+                ...(filters.job_type && {
+                  jobType: String(filters.job_type)
+                    .toLowerCase()
+                    .replace('-', '_'),
+                }),
+                ...(filters.remote_work && {
+                  remoteWork: filters.remote_work,
+                }),
+                ...(filters.location && {
+                  location: filters.location,
+                }),
+                ...(filters.maxSalary && {
+                  minSalary: { lte: Number(filters.maxSalary) },
+                  maxSalary: { lte: Number(filters.maxSalary) },
+                }),
+              } as never,
+            }),
         },
         select: {
           hasImage: true,
