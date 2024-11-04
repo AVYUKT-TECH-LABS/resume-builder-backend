@@ -172,6 +172,7 @@ export class EmployerService {
         pay_type: true,
         fixed_salary: true,
         avg_incentive: true,
+        num_openings: true,
         perks: true,
         joining_fee_required: true,
         joining_fee: true,
@@ -233,6 +234,7 @@ export class EmployerService {
           },
         },
         ...body,
+        num_openings: parseInt(body.num_openings),
         jd: JSON.stringify(body.jd),
         fixed_salary: isNaN(parseInt(body.fixed_salary))
           ? 0
@@ -256,6 +258,7 @@ export class EmployerService {
     await this.prismaService.job.update({
       data: {
         ...body,
+        num_openings: parseInt(body.num_openings),
         jd: JSON.stringify(body.jd),
         fixed_salary: isNaN(parseInt(body.fixed_salary))
           ? 0
