@@ -173,6 +173,7 @@ export class EmployerService {
         fixed_salary: true,
         avg_incentive: true,
         num_openings: true,
+        qualifications: true,
         perks: true,
         joining_fee_required: true,
         joining_fee: true,

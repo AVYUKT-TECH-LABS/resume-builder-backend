@@ -194,6 +194,7 @@ model Job {
     walk_in_start_date    String?
     walk_in_timings       String?
     num_openings          Int                    @default(1)
+    qualifications         String                 @default("")
     work_location_type    Job_work_location_type
     created_at            DateTime               @default(now())
     updated_at            DateTime               @updatedAt

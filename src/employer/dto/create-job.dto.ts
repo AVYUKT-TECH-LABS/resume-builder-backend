@@ -46,6 +46,10 @@ export class CreateJobDto {
 
   @IsOptional()
   @IsString()
+  qualifications: string;
+
+  @IsOptional()
+  @IsString()
   joining_fee?: string;
 
   // Candidate requirements
