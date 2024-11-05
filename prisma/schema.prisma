@@ -72,7 +72,7 @@ model Organization {
     updated_at       DateTime           @updatedAt
     city             String
     deleted_at       DateTime?
-    description      String
+    description      String             @db.Text
     industry         String
     isSubscribed     Boolean            @default(false)
     is_deleted       Boolean            @default(false)
@@ -194,7 +194,7 @@ model Job {
     walk_in_start_date    String?
     walk_in_timings       String?
     num_openings          Int                    @default(1)
-    qualifications         String                 @default("")
+    qualifications        String                 @default("")
     work_location_type    Job_work_location_type
     created_at            DateTime               @default(now())
     updated_at            DateTime               @updatedAt
