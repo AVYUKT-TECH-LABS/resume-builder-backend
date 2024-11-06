@@ -28,6 +28,7 @@ model User {
     candidateSkills CandidateSkill[]
     Order           Order[]
     jobPreferences  JobPreference?   @relation(fields: [jobPreferenceId], references: [id])
+    org_reviews     org_reviews[]
 
     @@index([email])
     @@index([id])
@@ -88,8 +89,21 @@ model Organization {
     org_reviews      org_reviews[]
     org_social_links org_social_links[]
     map_url          String?
+    accreditions     String?
+    coverImg         String?
+    orgDocs          OrgDocs?           @relation(fields: [orgDocsId], references: [id])
+    orgDocsId        String?
 
     @@index([name])
+}
+
+model OrgDocs {
+    id             String         @id @default(uuid())
+    organizationId String?
+    documentType   String
+    documentUrl    String
+    createdAt      DateTime       @default(now())
+    Organization   Organization[]
 }
 
 model Employer {
@@ -143,6 +157,9 @@ model org_reviews {
     deleted_at      DateTime?
     organization_id String
     organization    Organization @relation(fields: [organization_id], references: [id])
+    user_id         String
+    user            User         @relation(fields: [userId], references: [id])
+    userId          String
 
     @@index([organization_id], map: "org_reviews_organization_id_fkey")
 }

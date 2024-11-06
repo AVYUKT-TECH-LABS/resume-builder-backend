@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, Patch, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, MaxFileSizeValidator, Param, ParseFilePipe, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { EmployerJwtAuthGuard } from 'src/guards/employer.auth.guard';
 import { Request } from "express";
+import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('company')
 export class CompanyController {
     constructor(private readonly companyService: CompanyService) { }
@@ -22,5 +23,26 @@ export class CompanyController {
     async updateOrganization(@Body() body: any, @Req() req: Request) {
         await this.companyService.updateOrg(body, req.employer.organization_id, req.employer.id)
         return 'ok'
+    }
+
+    @Post('/upload-doc')
+    @UseGuards(EmployerJwtAuthGuard)
+    @UseInterceptors(FileInterceptor('file'))
+    async uploadOrgLogo(
+        @Req() req: Request,
+        @Body() body: any,
+        @UploadedFile(
+            new ParseFilePipe({
+                validators: [new MaxFileSizeValidator({ maxSize: 50000000 })],
+            }),
+        )
+        file: Express.Multer.File,
+    ) {
+        const document = await this.companyService.uploadDoc(file, body.documentType);
+
+        return {
+            success: true,
+            ...document
+        };
     }
 }

@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { randomUUID } from 'crypto';
+import { CloudService } from 'src/cloud/cloud.service';
 
 @Injectable()
 export class CompanyService {
-    constructor(private prismaService: PrismaService) { }
+    constructor(private prismaService: PrismaService, private cloud: CloudService) { }
 
     async getCompany(id: string) {
         return this.prismaService.organization.findFirst({
@@ -21,6 +23,8 @@ export class CompanyService {
                 num_employees: true,
                 website: true,
                 map_url: true,
+                accreditions: true,
+                coverImg: true,
                 jobs: {
                     select: {
                         id: true,
@@ -61,6 +65,18 @@ export class CompanyService {
                         organization_id: id,
                     },
                 },
+                org_reviews: {
+                    include: {
+                        user: {
+                            select: {
+                                name: true,
+                                imageUrl: true,
+                            }
+                        }
+                    },
+                    take: 5,
+                    skip: 0,
+                }
             },
         });
     }
@@ -112,5 +128,22 @@ export class CompanyService {
             },
             data: body
         })
+    }
+
+    async uploadDoc(file: Express.Multer.File, documentType: string) {
+        const fileName = `${randomUUID()}-doc`;
+
+        const storage = this.cloud.getStorageService();
+
+        const documentUrl = await storage.uploadFile(file, fileName, 'txcl-org-docs')
+
+        const document = await this.prismaService.orgDocs.create({
+            data: {
+                documentType,
+                documentUrl
+            }
+        })
+
+        return { documentUrl, documentId: document.id };
     }
 }

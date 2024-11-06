@@ -64,7 +64,7 @@ export class EmployerJwtAuthGuard implements CanActivate {
       if (!employer.organization_id) {
         if (
           request.url !== '/v1/employer/on-boarding' &&
-          request.url !== '/v1/employer/upload'
+          request.url !== '/v1/employer/upload' && request.url !== '/v1/company/upload-doc'
         ) {
           throw new ForbiddenException('Complete on-boarding first!');
         }
