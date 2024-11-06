@@ -87,6 +87,7 @@ model Organization {
     jobs             Job[]
     org_reviews      org_reviews[]
     org_social_links org_social_links[]
+    map_url          String?
 
     @@index([name])
 }
