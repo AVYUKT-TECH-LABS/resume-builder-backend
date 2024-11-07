@@ -445,7 +445,7 @@ export class EmployerService {
     });
 
     this.notifications.sendTemplateMail('templates-email-queue', {
-      templateName: 'application_status_update',
+      templateName: 'application_status',
       payload: {
         email: application.user.email,
         application_id: body.application_id,
