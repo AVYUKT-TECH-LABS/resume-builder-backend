@@ -56,25 +56,57 @@ export class CandidatesDatabaseService {
 
   async search(query: string, page: number = 1, pageSize: number = 10) {
     try {
-      //generate embeddings for the query
-      const embeddings = await this.openai.generateEmbeddings(query);
+      if (query.trim()) {
+        // Generate embeddings for the query
+        const embeddings = await this.openai.generateEmbeddings(query);
 
-      //Do a vector search
-      const vectorResponse = await this.vectorSearch(
-        embeddings,
-        page,
-        pageSize,
-      );
+        // Perform vector-based search with pagination
+        const vectorResponse = await this.vectorSearch(
+          embeddings,
+          page,
+          pageSize,
+        );
+        const candidates = await this.getUserDetails(vectorResponse.results);
 
-      const candidates = await this.getUserDetails(vectorResponse.results);
+        return {
+          results: candidates,
+          pagination: vectorResponse.pagination,
+        };
+      } else {
+        // Fetch unique resumes based on `user_id`
+        const resumes = await this.resumeModel.aggregate([
+          {
+            $group: {
+              _id: '$userId',
+              userId: { $first: '$userId' },
+              originalId: { $first: '$_id' }, // Get the first `_id` for each unique `userId`
+            },
+          },
+          {
+            $project: {
+              _id: '$originalId',
+              userId: 1,
+            },
+          },
+        ]);
 
-      return {
-        results: candidates,
-        pagination: vectorResponse.pagination,
-      };
+        const candidates = (await this.getUserDetails(resumes as never)).filter(
+          (c) => c.user != null,
+        );
+
+        return {
+          results: candidates,
+          pagination: {
+            currentPage: 1,
+            pageSize: resumes.length,
+            totalCount: candidates.length,
+            totalPages: 1,
+          },
+        };
+      }
     } catch (err) {
-      this.logger.log('Failed to search candidates', err);
-      throw err;
+      this.logger.error('Failed to search candidates', { error: err });
+      throw new Error('Search operation failed. Please try again later.');
     }
   }
 
