@@ -66,83 +66,83 @@ export class CandidateService {
 
     const where: Prisma.JobWhereInput = {};
 
-    if (search) {
-      where.job_title = {
-        contains: search,
-      };
-    }
+    // if (search) {
+    //   where.job_title = {
+    //     contains: search,
+    //   };
+    // }
 
-    if (workExperience && workExperience.length > 0) {
-      const validExperienceLevels: ExperienceLevel[] = workExperience
-        .map((level) => level.trim())
-        .filter((level) =>
-          Object.values(ExperienceLevel).includes(level as ExperienceLevel),
-        ) as ExperienceLevel[];
+    // if (workExperience && workExperience.length > 0) {
+    //   const validExperienceLevels: ExperienceLevel[] = workExperience
+    //     .map((level) => level.trim())
+    //     .filter((level) =>
+    //       Object.values(ExperienceLevel).includes(level as ExperienceLevel),
+    //     ) as ExperienceLevel[];
 
-      if (validExperienceLevels.length > 0) {
-        where.experience_level = {
-          in: validExperienceLevels,
-        };
-      }
-    }
+    //   if (validExperienceLevels.length > 0) {
+    //     where.experience_level = {
+    //       in: validExperienceLevels,
+    //     };
+    //   }
+    // }
 
-    if (salary && salary.length > 0) {
-      const validSalaries = salary
-        .map((sal) => parseFloat(sal))
-        .filter((sal) => !isNaN(sal));
+    // if (salary && salary.length > 0) {
+    //   const validSalaries = salary
+    //     .map((sal) => parseFloat(sal))
+    //     .filter((sal) => !isNaN(sal));
 
-      if (validSalaries.length > 0) {
-        where.OR = validSalaries.map((salary) => ({
-          fixed_salary: {
-            gte: salary,
-          },
-        }));
-      }
-    }
+    //   if (validSalaries.length > 0) {
+    //     where.OR = validSalaries.map((salary) => ({
+    //       fixed_salary: {
+    //         gte: salary,
+    //       },
+    //     }));
+    //   }
+    // }
 
-    if (jobType && jobType.length > 0) {
-      const validJobTypes: JobType[] = jobType
-        .map((type) => type.trim())
-        .filter((type) =>
-          Object.values(JobType).includes(type as JobType),
-        ) as JobType[];
+    // if (jobType && jobType.length > 0) {
+    //   const validJobTypes: JobType[] = jobType
+    //     .map((type) => type.trim())
+    //     .filter((type) =>
+    //       Object.values(JobType).includes(type as JobType),
+    //     ) as JobType[];
 
-      if (validJobTypes.length > 0) {
-        where.job_type = {
-          in: validJobTypes,
-        };
-      }
-    }
+    //   if (validJobTypes.length > 0) {
+    //     where.job_type = {
+    //       in: validJobTypes,
+    //     };
+    //   }
+    // }
 
-    if (location && location.length > 0) {
-      const validLocations: Job_work_location_type[] = location
-        .map((type) => type.trim())
-        .filter((type) =>
-          Object.values(Job_work_location_type).includes(
-            type as Job_work_location_type,
-          ),
-        ) as Job_work_location_type[];
+    // if (location && location.length > 0) {
+    //   const validLocations: Job_work_location_type[] = location
+    //     .map((type) => type.trim())
+    //     .filter((type) =>
+    //       Object.values(Job_work_location_type).includes(
+    //         type as Job_work_location_type,
+    //       ),
+    //     ) as Job_work_location_type[];
 
-      if (validLocations.length > 0) {
-        where.work_location_type = {
-          in: validLocations,
-        };
-      }
-    }
+    //   if (validLocations.length > 0) {
+    //     where.work_location_type = {
+    //       in: validLocations,
+    //     };
+    //   }
+    // }
 
-    if (minEducation && minEducation.length > 0) {
-      const validMinEdu: EducationLevel[] = minEducation
-        .map((type) => type.trim())
-        .filter((type) =>
-          Object.values(EducationLevel).includes(type as EducationLevel),
-        ) as EducationLevel[];
+    // if (minEducation && minEducation.length > 0) {
+    //   const validMinEdu: EducationLevel[] = minEducation
+    //     .map((type) => type.trim())
+    //     .filter((type) =>
+    //       Object.values(EducationLevel).includes(type as EducationLevel),
+    //     ) as EducationLevel[];
 
-      if (validMinEdu.length > 0) {
-        where.minimum_edu = {
-          in: validMinEdu,
-        };
-      }
-    }
+    //   if (validMinEdu.length > 0) {
+    //     where.minimum_edu = {
+    //       in: validMinEdu,
+    //     };
+    //   }
+    // }
 
     return this.prismaService.job.findMany({
       where: {
@@ -162,6 +162,9 @@ export class CandidateService {
           },
         },
       },
+      orderBy: {
+        created_at: 'desc'
+      }
     });
   }
 

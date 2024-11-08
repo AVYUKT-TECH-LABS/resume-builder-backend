@@ -9,21 +9,23 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { LinkedinStrategy } from './strategies/linkedin.strategy';
+import { HubspotModule } from 'src/hubspot/hubspot.module';
 
 @Module({
-  imports: [
-    EmployerModule,
-    CandidateModule,
-    PrismaModule,
-    NotificationModule,
-    JwtModule,
-  ],
-  controllers: [AuthController],
-  providers: [
-    AuthService,
-    MagicLoginStrategy,
-    GoogleStrategy,
-    LinkedinStrategy,
-  ],
+    imports: [
+        EmployerModule,
+        CandidateModule,
+        PrismaModule,
+        NotificationModule,
+        JwtModule,
+        HubspotModule
+    ],
+    controllers: [AuthController],
+    providers: [
+        AuthService,
+        MagicLoginStrategy,
+        GoogleStrategy,
+        LinkedinStrategy,
+    ],
 })
-export class AuthModule {}
+export class AuthModule { }

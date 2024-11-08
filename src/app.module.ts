@@ -22,6 +22,7 @@ import { CandidatesDatabaseModule } from './candidates-database/candidates-datab
 import { ResumeProcessorModule } from './resume-processor/resume-processor.module';
 import { MigrationsModule } from './migrations/migrations.module';
 import { CompanyModule } from './company/company.module';
+import { HubspotModule } from './hubspot/hubspot.module';
 
 @Module({
     imports: [
@@ -51,6 +52,7 @@ import { CompanyModule } from './company/company.module';
         CandidateModule,
         MigrationsModule,
         CompanyModule,
+        HubspotModule,
     ],
     controllers: [AppController],
     providers: [NotificationService],
