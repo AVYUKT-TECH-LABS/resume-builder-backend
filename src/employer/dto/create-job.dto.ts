@@ -1,11 +1,5 @@
 import {
-  IsArray,
-  IsBoolean,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MinLength,
+    IsArray, IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength
 } from 'class-validator';
 
 export class CreateJobDto {
@@ -29,6 +23,9 @@ export class CreateJobDto {
   @IsString()
   office_address?: string;
 
+  @IsString()
+  num_openings: string;
+
   @IsEnum(['fixed_only', 'fixed_and_incentive', 'incentive_only'])
   pay_type: 'fixed_only' | 'fixed_and_incentive' | 'incentive_only';
 
@@ -46,6 +43,10 @@ export class CreateJobDto {
 
   @IsBoolean()
   joining_fee_required: boolean;
+
+  @IsOptional()
+  @IsString()
+  qualifications: string;
 
   @IsOptional()
   @IsString()

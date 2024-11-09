@@ -26,6 +26,7 @@
     "@aws-sdk/credential-providers": "^3.645.0",
     "@clerk/clerk-sdk-node": "^5.0.26",
     "@google-cloud/storage": "^7.12.1",
+    "@hubspot/api-client": "^12.0.1",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.3",
     "@nestjs/core": "^10.0.0",

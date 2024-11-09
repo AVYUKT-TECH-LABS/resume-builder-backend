@@ -1,13 +1,6 @@
 import { Type } from 'class-transformer';
 import {
-  IsEmail,
-  IsNotEmpty,
-  IsObject,
-  IsOptional,
-  IsString,
-  IsUrl,
-  MaxLength,
-  ValidateNested,
+    IsEmail, IsNotEmpty, IsObject, IsOptional, IsString, IsUrl, MaxLength, ValidateNested
 } from 'class-validator';
 
 class OrgSocialLinksDto {
@@ -67,8 +60,4 @@ export class OnBoardingDto {
   @Type(() => OrgSocialLinksDto)
   @IsObject()
   org_social_links?: OrgSocialLinksDto;
-
-  @IsOptional()
-  @IsEmail({}, { message: 'Invalid email domain' })
-  mailDomain?: string;
 }

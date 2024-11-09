@@ -1,11 +1,13 @@
+import { Model, Types } from 'mongoose';
+import { z } from 'zod';
+
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ResumeV2 } from '../schemas/resume.schema.v2';
-import { Model, Types } from 'mongoose';
+
 import { OpenAiService } from '../openai/openai.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JobEmbeddings } from '../schemas/job-embeddings.schema';
-import { z } from 'zod';
+import { ResumeV2 } from '../schemas/resume.schema.v2';
 
 @Injectable()
 export class CandidatesDatabaseService {
@@ -22,6 +24,7 @@ export class CandidatesDatabaseService {
     jobId: string,
     page: number = 1,
     pageSize: number = 10,
+    filters?: Record<string, unknown>,
   ) {
     try {
       //get saved embeddings for the job
@@ -38,10 +41,11 @@ export class CandidatesDatabaseService {
 
       const recommendedCandidates = await this.getUserDetails(
         vectorResponse.results,
+        filters,
       );
 
       return {
-        results: recommendedCandidates,
+        results: recommendedCandidates.filter((cand) => cand.user !== null),
         pagination: vectorResponse.pagination,
       };
     } catch (err) {
@@ -52,25 +56,57 @@ export class CandidatesDatabaseService {
 
   async search(query: string, page: number = 1, pageSize: number = 10) {
     try {
-      //generate embeddings for the query
-      const embeddings = await this.openai.generateEmbeddings(query);
+      if (query.trim()) {
+        // Generate embeddings for the query
+        const embeddings = await this.openai.generateEmbeddings(query);
 
-      //Do a vector search
-      const vectorResponse = await this.vectorSearch(
-        embeddings,
-        page,
-        pageSize,
-      );
+        // Perform vector-based search with pagination
+        const vectorResponse = await this.vectorSearch(
+          embeddings,
+          page,
+          pageSize,
+        );
+        const candidates = await this.getUserDetails(vectorResponse.results);
 
-      const candidates = await this.getUserDetails(vectorResponse.results);
+        return {
+          results: candidates,
+          pagination: vectorResponse.pagination,
+        };
+      } else {
+        // Fetch unique resumes based on `user_id`
+        const resumes = await this.resumeModel.aggregate([
+          {
+            $group: {
+              _id: '$userId',
+              userId: { $first: '$userId' },
+              originalId: { $first: '$_id' }, // Get the first `_id` for each unique `userId`
+            },
+          },
+          {
+            $project: {
+              _id: '$originalId',
+              userId: 1,
+            },
+          },
+        ]);
 
-      return {
-        results: candidates,
-        pagination: vectorResponse.pagination,
-      };
+        const candidates = (await this.getUserDetails(resumes as never)).filter(
+          (c) => c.user != null,
+        );
+
+        return {
+          results: candidates,
+          pagination: {
+            currentPage: 1,
+            pageSize: resumes.length,
+            totalCount: candidates.length,
+            totalPages: 1,
+          },
+        };
+      }
     } catch (err) {
-      this.logger.log('Failed to search candidates', err);
-      throw err;
+      this.logger.error('Failed to search candidates', { error: err });
+      throw new Error('Search operation failed. Please try again later.');
     }
   }
 
@@ -101,8 +137,11 @@ export class CandidatesDatabaseService {
 
   private async getUserDetails(
     data: { _id: string; userId: string; score: number }[],
+    filters?: Record<string, unknown>,
   ) {
-    const userIds = data.map((item) => item.userId);
+    const userIds = data
+      .map((item) => item.userId)
+      .filter((id) => id !== 'GUEST_USER');
     const resumeIds = data.map((item) => item._id);
 
     try {
@@ -113,6 +152,26 @@ export class CandidatesDatabaseService {
           },
           banned: false,
           locked: false,
+          ...(filters &&
+            Object.keys(filters).length > 0 && {
+              jobPreferences: {
+                ...(filters.job_type && {
+                  jobType: String(filters.job_type)
+                    .toLowerCase()
+                    .replace('-', '_'),
+                }),
+                ...(filters.remote_work && {
+                  remoteWork: filters.remote_work,
+                }),
+                ...(filters.location && {
+                  location: filters.location,
+                }),
+                ...(filters.maxSalary && {
+                  minSalary: { lte: Number(filters.maxSalary) },
+                  maxSalary: { lte: Number(filters.maxSalary) },
+                }),
+              } as never,
+            }),
         },
         select: {
           hasImage: true,
