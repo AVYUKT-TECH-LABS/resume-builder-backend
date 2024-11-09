@@ -1,17 +1,10 @@
 import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  InternalServerErrorException,
-  Logger,
-  Param,
-  Post,
-  Query,
-  UseGuards,
+    BadRequestException, Body, Controller, Get, InternalServerErrorException, Logger, Param, Post,
+    Query, UseGuards
 } from '@nestjs/common';
-import { CandidatesDatabaseService } from './candidates-database.service';
+
 import { EmployerJwtAuthGuard } from '../guards/employer.auth.guard';
+import { CandidatesDatabaseService } from './candidates-database.service';
 
 interface PaginatedResponse<T> {
   data: T[];
@@ -29,11 +22,12 @@ export class CandidatesDatabaseController {
   constructor(private candidatesDBService: CandidatesDatabaseService) {}
 
   @UseGuards(EmployerJwtAuthGuard)
-  @Get('recommended/:jobId')
+  @Post('recommended/:jobId')
   async getRecommended(
     @Param('jobId') jobId: string,
     @Query('page') page: string = '1',
     @Query('pageSize') pageSize: string = '10',
+    @Body() body: { filters: Record<string, unknown> },
   ): Promise<PaginatedResponse<any>> {
     try {
       const pageNumber = parseInt(page, 10);
@@ -53,6 +47,7 @@ export class CandidatesDatabaseController {
           jobId,
           pageNumber,
           pageSizeNumber,
+          body.filters
         );
 
       return {

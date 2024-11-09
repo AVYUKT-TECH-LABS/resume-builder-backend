@@ -81,7 +81,16 @@ const ParsedResume = z.object({
 
 const DomainSuggestions = z.object({
   domain: z.string(),
-  suggestions: z.array(z.string()),
+  suggestions: z.array(
+    z.object({
+      title: z.string().describe('The suggested domain'),
+      category: z
+        .string()
+        .describe(
+          'The category of the suggested domains from VARIATED_CATEGORIES',
+        ),
+    }),
+  ),
 });
 
 export { DomainSuggestions, ParsedResume };

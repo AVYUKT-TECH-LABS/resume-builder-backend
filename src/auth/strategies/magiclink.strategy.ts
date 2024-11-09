@@ -33,10 +33,12 @@ export class MagicLoginStrategy extends PassportStrategy(
         href += `&role=${req.body.usertype}`;
         console.log(href);
 
-        this.notificationService.sendMail('emails-queue', {
-          body: MagicLinkEmailTempate(href),
-          subject: `Magic Link Login`,
-          to: destination,
+        this.notificationService.sendTemplateMail('templates-email-queue', {
+          templateName: 'employer_welcome',
+          payload: {
+            email: destination,
+            link: href
+          }
         });
       },
       verify: async (payload, callback) => {

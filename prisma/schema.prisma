@@ -28,6 +28,7 @@ model User {
     candidateSkills CandidateSkill[]
     Order           Order[]
     jobPreferences  JobPreference?   @relation(fields: [jobPreferenceId], references: [id])
+    org_reviews     org_reviews[]
 
     @@index([email])
     @@index([id])
@@ -72,7 +73,7 @@ model Organization {
     updated_at       DateTime           @updatedAt
     city             String
     deleted_at       DateTime?
-    description      String
+    description      String             @db.Text
     industry         String
     isSubscribed     Boolean            @default(false)
     is_deleted       Boolean            @default(false)
@@ -87,8 +88,22 @@ model Organization {
     jobs             Job[]
     org_reviews      org_reviews[]
     org_social_links org_social_links[]
+    map_url          String?
+    accreditions     String?
+    coverImg         String?
+    orgDocs          OrgDocs?           @relation(fields: [orgDocsId], references: [id])
+    orgDocsId        String?
 
     @@index([name])
+}
+
+model OrgDocs {
+    id             String         @id @default(uuid())
+    organizationId String?
+    documentType   String
+    documentUrl    String
+    createdAt      DateTime       @default(now())
+    Organization   Organization[]
 }
 
 model Employer {
@@ -142,6 +157,9 @@ model org_reviews {
     deleted_at      DateTime?
     organization_id String
     organization    Organization @relation(fields: [organization_id], references: [id])
+    user_id         String
+    user            User         @relation(fields: [userId], references: [id])
+    userId          String
 
     @@index([organization_id], map: "org_reviews_organization_id_fkey")
 }
@@ -193,6 +211,8 @@ model Job {
     walk_in_end_date      String?
     walk_in_start_date    String?
     walk_in_timings       String?
+    num_openings          Int                    @default(1)
+    qualifications        String                 @default("")
     work_location_type    Job_work_location_type
     created_at            DateTime               @default(now())
     updated_at            DateTime               @updatedAt
