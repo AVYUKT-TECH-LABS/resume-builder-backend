@@ -6981,10 +6981,9 @@ passport-jwt@^4.0.1:
     jsonwebtoken "^9.0.0"
     passport-strategy "^1.0.0"
 
-passport-linkedin-oauth2@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/passport-linkedin-oauth2/-/passport-linkedin-oauth2-2.0.0.tgz#c320374baa44c1412a9b023590d1d0c1c77cfe73"
-  integrity sha512-PnSeq2HzFQ/y1/p2RTF/kG2zhJ7kwGVg4xO3E+JNxz2aI0pFJGAqC503FVpUksYbhQdNhL6QYlK9qrEXD7ZYCg==
+"passport-linkedin-oauth2@git+https://github.com/auth0/passport-linkedin-oauth2":
+  version "3.0.0"
+  resolved "git+https://github.com/auth0/passport-linkedin-oauth2#87bd3076edb262933ebd460d367e8cd3aa941b23"
   dependencies:
     passport-oauth2 "1.x.x"
 
