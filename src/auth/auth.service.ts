@@ -161,7 +161,7 @@ export class AuthService {
         }
     }
 
-    async socialLogin(req, provider:AuthProvider='GOOGLE'): Promise<User> {
+    async socialLogin(req, provider: AuthProvider = 'GOOGLE'): Promise<User> {
         if (!req.user) {
             throw new UnauthorizedException('Failed to login');
         }
@@ -171,6 +171,11 @@ export class AuthService {
         if (user) {
             return user as User;
         }
+
+        await this.hubspotService.createContact({
+            email: user.email,
+            firstname: user.name,
+        })
 
         return this.candidateService.create({
             email: req.user.email,
