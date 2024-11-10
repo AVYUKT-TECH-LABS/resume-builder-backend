@@ -172,6 +172,7 @@ export class EmployerService {
         office_address: true,
         pay_type: true,
         fixed_salary: true,
+        currency: true,
         avg_incentive: true,
         num_openings: true,
         qualifications: true,

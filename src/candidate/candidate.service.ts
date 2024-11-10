@@ -153,6 +153,7 @@ export class CandidateService {
         id: true,
         job_title: true,
         fixed_salary: true,
+        currency: true,
         work_location_type: true,
         job_type: true,
         Organization: {

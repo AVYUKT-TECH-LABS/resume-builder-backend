@@ -188,6 +188,7 @@ model Job {
     english_level         EnglishLevel
     experience_level      ExperienceLevel
     fixed_salary          Int
+    currency              String                 @default("INR")
     gender                Gender?
     interview_address     String?
     interview_type        InterviewType
