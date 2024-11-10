@@ -6,7 +6,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 
 import { ConfigService } from '@nestjs/config';
-import { Employer, User } from '@prisma/client';
+import { AuthProvider, Employer, User } from '@prisma/client';
 import { CandidateService } from '../candidate/candidate.service';
 import {
     CandidateEmailSignupDto,
@@ -150,7 +150,7 @@ export class AuthService {
 
         switch (userType) {
             case UserType.CANDIDATE:
-                return await this.candidateService.create({ email, name });
+                return await this.candidateService.create({ email, name, provider: "EMAIL_PASSWORD" });
             case UserType.EMPLOYER:
                 return await this.employerService.createEmployeeWithoutCompany({
                     email,
@@ -161,7 +161,7 @@ export class AuthService {
         }
     }
 
-    async googleLogin(req): Promise<User> {
+    async socialLogin(req, provider:AuthProvider='GOOGLE'): Promise<User> {
         if (!req.user) {
             throw new UnauthorizedException('Failed to login');
         }
@@ -174,9 +174,9 @@ export class AuthService {
 
         return this.candidateService.create({
             email: req.user.email,
-            name: `${req.user.firstName} ${req.user.lastName}`,
+            name: `${req.user.firstName} ${req.user.lastName ?? ""}`,
             imageUrl: req.user.picture,
-            provider: 'GOOGLE',
+            provider,
         });
     }
 

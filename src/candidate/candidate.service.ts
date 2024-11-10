@@ -30,7 +30,6 @@ export class CandidateService {
     const newUser = await this.prismaService.user.create({
       data: {
         ...data,
-        provider: 'EMAIL_PASSWORD',
       },
     });
 
