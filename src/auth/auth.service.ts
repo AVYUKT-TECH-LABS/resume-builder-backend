@@ -143,10 +143,14 @@ export class AuthService {
             return user;
         }
 
-        await this.hubspotService.createContact({
-            email,
-            firstname: name,
-        })
+        try {
+            await this.hubspotService.createContact({
+                email,
+                firstname: name,
+            });
+        } catch (error) {
+            console.error('HubSpot contact creation failed:', error);
+        }
 
         switch (userType) {
             case UserType.CANDIDATE:
@@ -172,10 +176,14 @@ export class AuthService {
             return user as User;
         }
 
-        await this.hubspotService.createContact({
-            email: req.user.email,
-            firstname: req.user.name,
-        })
+        try {
+            await this.hubspotService.createContact({
+                email: req.user.email,
+                firstname: req.user.firstName,
+            });
+        } catch (error) {
+            console.error('HubSpot contact creation failed:', error);
+        }
 
         return this.candidateService.create({
             email: req.user.email,

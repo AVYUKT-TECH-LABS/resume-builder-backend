@@ -16,7 +16,7 @@ model User {
     provider_id     String?          @unique
     updated_at      DateTime         @updatedAt
     clerkId         String?          @unique
-    credits         Int              @default(0)
+    credits         Int              @default(30)
     banned          Boolean          @default(false)
     hasImage        Boolean          @default(false)
     imageUrl        String?
