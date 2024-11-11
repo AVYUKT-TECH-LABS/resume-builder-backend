@@ -20,11 +20,11 @@ export class LinkedinStrategy extends PassportStrategy(Strategy, 'linkedin') {
         profile: any,
         done: (err, user) => void,
     ): Promise<any> {
-        const { given_name, family_name, email, picture } = profile;
+        const { givenName, familyName, email, picture } = profile;
         const user = {
             email: email,
-            firstName: given_name,
-            lastName: family_name,
+            firstName: givenName,
+            lastName: familyName,
             picture: picture,
             accessToken,
             refreshToken,
