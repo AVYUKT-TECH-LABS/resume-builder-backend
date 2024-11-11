@@ -173,8 +173,8 @@ export class AuthService {
         }
 
         await this.hubspotService.createContact({
-            email: user.email,
-            firstname: user.name,
+            email: req.user.email,
+            firstname: req.user.name,
         })
 
         return this.candidateService.create({

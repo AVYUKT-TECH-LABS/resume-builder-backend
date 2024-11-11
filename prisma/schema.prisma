@@ -27,7 +27,7 @@ model User {
     applications    Application[]
     candidateSkills CandidateSkill[]
     Order           Order[]
-    jobPreferences  JobPreference?   @relation(fields: [jobPreferenceId], references: [id])
+    jobPreferences  JobPreference?   @relation(fields: [jobPreferenceId], references: [id], onDelete: Cascade)
     org_reviews     org_reviews[]
 
     @@index([email])
@@ -59,8 +59,8 @@ model CandidateSkill {
     userId      String
     skillId     String
     proficiency Proficiency
-    skill       Skill       @relation(fields: [skillId], references: [id])
-    user        User        @relation(fields: [userId], references: [id])
+    skill       Skill       @relation(fields: [skillId], references: [id], onDelete: Cascade)
+    user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@unique([userId, skillId])
     @@index([skillId], map: "CandidateSkill_skillId_fkey")
@@ -91,7 +91,7 @@ model Organization {
     map_url          String?
     accreditions     String?
     coverImg         String?
-    orgDocs          OrgDocs?           @relation(fields: [orgDocsId], references: [id])
+    orgDocs          OrgDocs?           @relation(fields: [orgDocsId], references: [id], onDelete: Cascade)
     orgDocsId        String?
 
     @@index([name])
@@ -142,7 +142,7 @@ model Batch {
     createdAt  DateTime    @default(now())
     updatedAt  DateTime    @updatedAt
     status     BatchStatus @default(created)
-    employer   Employer    @relation(fields: [employerId], references: [id])
+    employer   Employer    @relation(fields: [employerId], references: [id], onDelete: Cascade)
 
     @@index([employerId], map: "Batch_employerId_fkey")
 }
@@ -156,9 +156,9 @@ model org_reviews {
     updated_at      DateTime     @updatedAt
     deleted_at      DateTime?
     organization_id String
-    organization    Organization @relation(fields: [organization_id], references: [id])
+    organization    Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
     user_id         String
-    user            User         @relation(fields: [userId], references: [id])
+    user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId          String
 
     @@index([organization_id], map: "org_reviews_organization_id_fkey")
@@ -174,7 +174,7 @@ model org_social_links {
     created_at      DateTime     @default(now())
     updated_at      DateTime     @updatedAt
     organization_id String
-    organization    Organization @relation(fields: [organization_id], references: [id])
+    organization    Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
 
     @@index([organization_id], map: "org_social_links_organization_id_fkey")
 }
@@ -221,8 +221,8 @@ model Job {
     deleted_at            DateTime?
     is_deleted            Boolean                @default(false)
     applications          Application[]
-    employer              Employer               @relation(fields: [employerId], references: [id])
-    Organization          Organization           @relation(fields: [organizationId], references: [id])
+    employer              Employer               @relation(fields: [employerId], references: [id], onDelete: Cascade)
+    Organization          Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
     @@index([employerId])
     @@index([organizationId], map: "Job_organizationId_fkey")
@@ -248,8 +248,8 @@ model Application {
     created_at         DateTime          @default(now())
     updated_at         DateTime          @updatedAt
     score              Int               @default(0)
-    job                Job               @relation(fields: [jobId], references: [id])
-    user               User              @relation(fields: [userId], references: [id])
+    job                Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+    user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@index([userId])
     @@index([jobId])
@@ -266,7 +266,7 @@ model Order {
     status     String
     created_at DateTime @default(now())
     updated_at DateTime @updatedAt
-    user       User     @relation(fields: [userId], references: [id])
+    user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@index([userId])
     @@index([planId])
