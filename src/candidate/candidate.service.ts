@@ -26,7 +26,7 @@ export class CandidateService {
         private notifications: NotificationService,
     ) { }
 
-    async create(data: Prisma.UserCreateInput) {
+    async create(data: Prisma.UserCreateInput, bypass: boolean = false) {
         const newUser = await this.prismaService.user.create({
             data: {
                 ...data,
@@ -34,13 +34,14 @@ export class CandidateService {
             },
         });
 
-        this.notifications.sendTemplateMail('templates-email-queue', {
-            templateName: 'user_welcome',
-            payload: {
-                email: newUser.email,
-                user_name: newUser.name,
-            },
-        });
+        if (!bypass)
+            this.notifications.sendTemplateMail('templates-email-queue', {
+                templateName: 'user_welcome',
+                payload: {
+                    email: newUser.email,
+                    user_name: newUser.name,
+                },
+            });
 
         return newUser;
     }

@@ -10,6 +10,7 @@ import { AuthService } from './auth.service';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { LinkedinStrategy } from './strategies/linkedin.strategy';
 import { HubspotModule } from 'src/hubspot/hubspot.module';
+import { ResumeModule } from 'src/resume/resume.module';
 
 @Module({
     imports: [
@@ -18,7 +19,8 @@ import { HubspotModule } from 'src/hubspot/hubspot.module';
         PrismaModule,
         NotificationModule,
         JwtModule,
-        HubspotModule
+        HubspotModule,
+        ResumeModule
     ],
     controllers: [AuthController],
     providers: [

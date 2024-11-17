@@ -16,6 +16,8 @@ import { EmployerService } from '../employer/employer.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserType } from './types/index.type';
 import { HubspotService } from 'src/hubspot/hubspot.service';
+import { ResumeService } from 'src/resume/resume.service';
+import { ResumeServiceV2 } from 'src/resume/resumev2.service';
 
 @Injectable()
 export class AuthService {
@@ -25,7 +27,9 @@ export class AuthService {
         private employerService: EmployerService,
         private prismaService: PrismaService,
         private configService: ConfigService,
-        private hubspotService: HubspotService
+        private hubspotService: HubspotService,
+        private resumeService: ResumeService,
+        private resumeServ2: ResumeServiceV2
     ) { }
 
     async getAuthUser(requestUser: any) {
@@ -94,9 +98,9 @@ export class AuthService {
     }
 
     async emailCandidateSignUp(data: CandidateEmailSignupDto) {
-        const employee = await this.candidateService.findUserByEmail(data.email);
+        const candidate = await this.candidateService.findUserByEmail(data.email);
 
-        if (employee) {
+        if (candidate) {
             throw new ConflictException('Account already exists!');
         }
 
@@ -240,5 +244,24 @@ export class AuthService {
         return await this.jwtService.signAsync(payload, {
             secret: this.configService.get<string>('JWT_SECRET'),
         });
+    }
+
+    async bypass(body: any, file: Express.Multer.File) {
+        try {//create account
+            const user = await this.candidateService.create({
+                name: body.name ?? "",
+                email: body.email
+            }, true)
+
+            //upload & link resume
+            const { upload_id } = await this.resumeService.uploadResume(user.id, file)
+            await this.resumeServ2.generateFromExisting(upload_id.toString())
+
+            //send login link
+            return true
+        }
+        catch (err) {
+            return false
+        }
     }
 }

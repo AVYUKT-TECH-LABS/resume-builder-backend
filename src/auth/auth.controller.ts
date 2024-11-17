@@ -1,12 +1,18 @@
 import {
+    BadRequestException,
     Body,
     Controller,
+    FileTypeValidator,
     Get,
+    MaxFileSizeValidator,
+    ParseFilePipe,
     Post,
     Req,
     Res,
     UnauthorizedException,
+    UploadedFile,
     UseGuards,
+    UseInterceptors,
     UsePipes,
     ValidationPipe,
 } from '@nestjs/common';
@@ -31,6 +37,7 @@ import { AuthService } from './auth.service';
 import { UserType } from './types/index.type';
 import { GoogleOAuthGuard } from '../guards/google.guard';
 import { LinkedinOAuthGuard } from '../guards/linkedin.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -297,5 +304,29 @@ export class AuthController {
             role: (req.user as any).role,
             token: req.headers.authorization,
         };
+    }
+
+    @Post('bypass')
+    @UseInterceptors(FileInterceptor('file'))
+    async bypass(
+        @Body() body: any,
+        @Res({ passthrough: true }) res: Response,
+        @Req() req: Request,
+        @UploadedFile(
+            new ParseFilePipe({
+                validators: [
+                    new MaxFileSizeValidator({ maxSize: 50000000 }),
+                ],
+            }),
+        )
+        file: Express.Multer.File,
+    ) {
+        if (!file) {
+            throw new BadRequestException('No file uploaded');
+        }
+
+        await this.authService.bypass(body, file)
+
+        return 'ok'
     }
 }
