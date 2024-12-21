@@ -71,7 +71,7 @@ export class CandidatesDatabaseController {
     try {
       const pageNumber = parseInt(page, 10);
       const pageSizeNumber = parseInt(pageSize, 10);
-
+        console.log("a", pageSizeNumber)
       if (
         isNaN(pageNumber) ||
         isNaN(pageSizeNumber) ||
