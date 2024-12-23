@@ -255,14 +255,28 @@ export class JobsService {
         }
     }
 
-    async get() {
+    async get({ page, limit }: { page: number, limit: number }) {
         try {
+            const totalItems = await this.prisma.aggregatedJob.count({});
+
+            // Calculate pagination values
+            const skip = (page - 1) * limit;
+            const totalPages = Math.ceil(totalItems / limit);
+
             const jobs = await this.prisma.aggregatedJob.findMany({
-                // skip: 0,
-                // take: 40,
+                skip: skip,
+                take: limit,
             });
 
-            return jobs;
+            return {
+                data: jobs,
+                meta: {
+                    totalItems,
+                    totalPages,
+                    hasNextPage: page < totalPages,
+                    hasPreviousPage: page > 1,
+                }
+            };
         } catch (err) {
             this.logger.log(err);
             throw err;

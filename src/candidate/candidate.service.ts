@@ -204,9 +204,6 @@ export class CandidateService {
             }
         };
     }
-    Improve
-    Explain
-
 
     async getJob(jobId: string) {
         return this.prismaService.job.findFirst({

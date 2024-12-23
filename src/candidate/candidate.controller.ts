@@ -71,10 +71,23 @@ export class CandidateController {
 
 
     @Get('/aggregated/jobs/list')
-    async getAggJobs() {
-        const aggregatedJobs = await this.aggJobs.get();
+    async getAggJobs(
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 20,
+    ) {
+        const {data: aggregatedJobs, meta} = await this.aggJobs.get({
+            page: Number(page),
+            limit: Number(limit),
+        });
 
-        return aggregatedJobs;
+        return {
+            data: aggregatedJobs,
+            meta: {
+                ...meta,
+                currentPage: page,
+                itemsPerPage: limit,
+            }
+        };
     }
 
     @Get('/job/:id')
