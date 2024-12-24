@@ -105,7 +105,7 @@ export class CandidateService {
             if (validSalaries.length > 0) {
                 where.OR = validSalaries.map((salary) => ({
                     fixed_salary: {
-                        gte: salary,
+                        lte: salary,
                     },
                 }));
             }
